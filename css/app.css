@@ -15,7 +15,12 @@
   --off: #9aa5af;
   --off-soft: #eef1f3;
   --warn: #b7791f;
+  --warn-soft: #fbf1e0;
   --danger: #c53030;
+  --violet: #6551c9;
+  --violet-soft: #ebe7fb;
+  --rose: #c23b6b;
+  --rose-soft: #fbe7ef;
   --rail: #1e2a33;
   --rail-text: #9fb0bd;
   --rail-active: #ffffff;
@@ -40,6 +45,11 @@
     --on-soft: #183324;
     --off: #6d7c88;
     --off-soft: #222d36;
+    --warn-soft: #3a2f16;
+    --violet: #a99cf0;
+    --violet-soft: #292149;
+    --rose: #e587ac;
+    --rose-soft: #3a2130;
     --rail: #0c1115;
     --shadow: none;
     color-scheme: dark;
@@ -60,6 +70,11 @@
   --on-soft: #183324;
   --off: #6d7c88;
   --off-soft: #222d36;
+  --warn-soft: #3a2f16;
+  --violet: #a99cf0;
+  --violet-soft: #292149;
+  --rose: #e587ac;
+  --rose-soft: #3a2130;
   --rail: #0c1115;
   --shadow: none;
   color-scheme: dark;
@@ -525,3 +540,50 @@ body.dragging .drop-overlay { display: grid; }
 .chain-step-body { padding: 0 12px 12px 42px; }
 
 .pill-info { background: var(--primary-soft); color: var(--primary); }
+
+/* ---------- Firewall ---------- */
+
+.firewall-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.ff-count { color: var(--text-2); font-size: 12.5px; white-space: nowrap; }
+
+.ff-search, .ff-filter {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.ff-search { flex: 0 1 320px; padding: 6px 10px; }
+.ff-filter { width: 100%; min-width: 72px; padding: 4px 8px; font-size: 12.5px; }
+
+.ff-filter-row th { padding-top: 0; padding-bottom: 8px; font-weight: 400; }
+
+.table-firewall tbody tr:not(.rule-detail) { cursor: pointer; }
+.table-firewall tbody tr:not(.rule-detail):hover { background: var(--surface-2); }
+.table-firewall tbody tr:not(.rule-detail):focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.table-firewall .rule-row.open { background: var(--surface-2); }
+
+.rule-detail > td { padding-top: 12px; padding-bottom: 14px; background: var(--surface-2); border-top: none !important; }
+
+.type-icon { display: inline-flex; color: var(--text-2); }
+
+.badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+
+.badge-tcp { background: var(--primary-soft); color: var(--primary); }
+.badge-udp { background: var(--violet-soft); color: var(--violet); }
+.badge-icmp { background: var(--warn-soft); color: var(--warn); }
+.badge-icmpv6 { background: var(--rose-soft); color: var(--rose); }
+.badge-esp { background: var(--on-soft); color: var(--on); }
+.badge-all, .badge-other { background: var(--off-soft); color: var(--text-2); }
+
+.chip-all { --chip: var(--muted); }
