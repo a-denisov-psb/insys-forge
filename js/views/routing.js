@@ -10,7 +10,8 @@
   const h = ui.h;
 
   const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-    '<circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="m7.2 7.6 4.8 4.4 4.8 4.4"/></svg>';
+    '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>' +
+    '<path d="m8.6 13.5 6.8 4"/><path d="m15.4 6.5-6.8 4"/></svg>';
 
   const ROUTE_TYPE_LABEL = { default: 'Default route', net: 'Network' };
   const GATEWAY_TYPE_LABEL = { dynamic: 'Dynamic', static: 'Static IP address', interface: 'Interface' };
