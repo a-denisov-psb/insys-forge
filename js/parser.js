@@ -130,12 +130,51 @@
     return tree;
   }
 
+  // icom OS's own default swatch colors for net1..net5, sampled from the classic (pre-ip_nets)
+  // web GUI, which always assigned these colors and carried no "color" config field for them.
+  const LEGACY_NET_COLORS = ['#FFDB42', '#7FC400', '#FF9EAF', '#7FD2ED', '#E86E31'];
+
+  function randomNetColor() {
+    return '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0').toUpperCase();
+  }
+
+  /**
+   * Older icom OS exports (pre ip_nets, e.g. icom OS 7.2) place the 5 fixed IP networks
+   * directly under interfaces.netN instead of interfaces.ip_nets.net[N], and their DHCP
+   * servers link to a net by array position instead of an explicit "interface" field.
+   * Normalize both into the current schema so the rest of the app only deals with one shape.
+   */
+  function normalizeLegacySchema(tree) {
+    const ifaces = tree.interfaces;
+    if (ifaces && !ifaces.ip_nets) {
+      const numbers = Object.keys(ifaces)
+        .map(function (k) { return SEGMENT.exec(k) && /^net\d+$/i.test(k) ? Number(k.slice(3)) : null; })
+        .filter(function (n) { return n !== null; });
+      if (numbers.length) {
+        const list = [];
+        numbers.forEach(function (n) {
+          const net = Object.assign({ name: 'net' + n }, ifaces['net' + n]);
+          if (net.color === undefined) net.color = LEGACY_NET_COLORS[n - 1] || randomNetColor();
+          list[n - 1] = net;
+        });
+        ifaces.ip_nets = { net: list };
+      }
+    }
+
+    const servers = tree.services && tree.services.dhcp_server && tree.services.dhcp_server.server;
+    if (Array.isArray(servers) && servers.some(Boolean) &&
+      servers.every(function (s) { return !s || s.interface === undefined; })) {
+      servers.forEach(function (s, i) { if (s) s.interface = 'net' + (i + 1); });
+    }
+  }
+
   class Config {
     constructor(values, directives, warnings) {
       this.values = values;
       this.directives = directives;
       this.warnings = warnings;
       this.tree = buildTree(values);
+      normalizeLegacySchema(this.tree);
     }
 
     has(key) {
