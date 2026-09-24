@@ -542,7 +542,7 @@ body.dragging .drop-overlay { display: grid; }
 
 .pill-info { background: var(--primary-soft); color: var(--primary); }
 
-/* ---------- Expandable table rows (firewall, routing) ---------- */
+/* ---------- Expandable table rows (firewall, NAT, routing) ---------- */
 
 .table-expand tbody tr:not(.row-detail) { cursor: pointer; }
 .table-expand tbody tr:not(.row-detail):hover { background: var(--surface-2); }
@@ -554,12 +554,12 @@ body.dragging .drop-overlay { display: grid; }
 .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 32px; }
 .detail-grid > .kv { align-content: start; }
 
-/* ---------- Firewall ---------- */
+/* ---------- Rule tables (Firewall, NAT): search box + per-column filter row ---------- */
 
-.firewall-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.ff-count { color: var(--text-2); font-size: 12.5px; white-space: nowrap; }
+.rule-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.rule-count { color: var(--text-2); font-size: 12.5px; white-space: nowrap; }
 
-.ff-search, .ff-filter {
+.rule-search, .rule-filter {
   border: 1px solid var(--border);
   border-radius: 7px;
   background: var(--surface-2);
@@ -568,10 +568,10 @@ body.dragging .drop-overlay { display: grid; }
   font-size: 13px;
 }
 
-.ff-search { flex: 0 1 320px; padding: 6px 10px; }
-.ff-filter { width: 100%; min-width: 72px; padding: 4px 8px; font-size: 12.5px; }
+.rule-search { flex: 0 1 320px; padding: 6px 10px; }
+.rule-filter { width: 100%; min-width: 72px; padding: 4px 8px; font-size: 12.5px; }
 
-.ff-filter-row th { padding-top: 8px; padding-bottom: 8px; font-weight: 400; }
+.rule-filter-row th { padding-top: 8px; padding-bottom: 8px; font-weight: 400; }
 
 .type-icon { display: inline-flex; color: var(--text-2); }
 
@@ -593,6 +593,10 @@ body.dragging .drop-overlay { display: grid; }
 .badge-all, .badge-other { background: var(--off-soft); color: var(--text-2); }
 
 .chip-all { --chip: var(--muted); }
+
+/* ---------- Firewall (IP filter + NAT rule tables, stacked) ---------- */
+
+.firewall { display: grid; gap: 24px; }
 
 /* ---------- Routing ---------- */
 

@@ -134,6 +134,33 @@
     return h('p', { class: 'empty-note' }, text);
   }
 
+  /* ---------- netfilter (firewall / NAT) rule fields, shared across views ---------- */
+
+  const KNOWN_PROTOCOLS = ['tcp', 'udp', 'icmp', 'icmpv6', 'esp', 'all'];
+  const PROTOCOL_LABEL = { icmpv6: 'ICMPv6' };
+
+  function protocolBadge(protocol) {
+    if (isUnset(protocol)) return h('span', { class: 'muted' }, EMPTY);
+    const known = KNOWN_PROTOCOLS.indexOf(protocol) !== -1;
+    const label = PROTOCOL_LABEL[protocol] || protocol.toUpperCase();
+    return h('span', { class: 'badge badge-' + (known ? protocol : 'other') }, label);
+  }
+
+  /** A single "netX" / "openvpnX" / "all" interface as a colored chip, using the IP net's own color when known. */
+  function ifaceChip(name, netsByName) {
+    if (name === 'all') return h('span', { class: 'chip chip-all' }, h('span', { class: 'chip-dot' }), 'All');
+    const net = netsByName[name];
+    return h('span', { class: 'chip', style: net && net.color ? { '--chip': net.color } : null, title: net ? net.description : null },
+      h('span', { class: 'chip-dot' }), name);
+  }
+
+  /** Comma separated interface list (icom OS's rule_*_if fields) as chips. */
+  function ifaceChips(value, netsByName) {
+    if (isUnset(value)) return h('span', { class: 'muted' }, EMPTY);
+    return value.split(',').map(function (n) { return n.trim(); }).filter(Boolean)
+      .map(function (n) { return ifaceChip(n, netsByName); });
+  }
+
   Forge.ui = {
     h: h,
     EMPTY: EMPTY,
@@ -147,5 +174,7 @@
     card: card,
     section: section,
     emptyNote: emptyNote,
+    protocolBadge: protocolBadge,
+    ifaceChips: ifaceChips,
   };
 })(window);
