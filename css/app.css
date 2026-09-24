@@ -473,7 +473,7 @@ body.dragging .drop-overlay { display: grid; }
 .kv dt { color: var(--text-2); }
 .kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 
-.addr-list + .kv, .chain + .kv, .empty-note + .kv { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.addr-list + .kv, .empty-note + .kv, .kv + .chain-steps, .kv + .empty-note { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
 
 /* ---------- Pills, flags, chips ---------- */
 

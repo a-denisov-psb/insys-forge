@@ -339,14 +339,14 @@
         inactive: wans.active !== undefined && !ui.isOn(wans.active),
         aside: wans.active !== undefined ? ui.statusPill(wans.active) : null,
         body: [
+          ui.kvList([
+            ['Lifetime limit', chain.lifetime_active === undefined ? undefined : (ui.isOn(chain.lifetime_active) ? (chain.lifetime || '') + ' → ' + (chain.lifetime_wan || '') : 'Off')],
+          ]),
           steps.length
             ? h('div', { class: 'chain-steps' }, steps.map(function (step, i) {
               return chainStepCard(step, i + 1, chain, wanGroups, labels);
             }))
             : ui.emptyNote('No interfaces in this chain.'),
-          ui.kvList([
-            ['Lifetime limit', chain.lifetime_active === undefined ? undefined : (ui.isOn(chain.lifetime_active) ? (chain.lifetime || '') + ' → ' + (chain.lifetime_wan || '') : 'Off')],
-          ]),
         ],
       }));
     });
