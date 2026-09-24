@@ -1,0 +1,417 @@
+/* ---------- Tokens ---------- */
+
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --surface-2: #f7f9fa;
+  --border: #e1e6ea;
+  --text: #1d2730;
+  --text-2: #5b6874;
+  --muted: #96a1ab;
+  --primary: #0a8f7e;
+  --primary-soft: #e3f4f1;
+  --on: #1f9d55;
+  --on-soft: #e4f5ea;
+  --off: #9aa5af;
+  --off-soft: #eef1f3;
+  --warn: #b7791f;
+  --danger: #c53030;
+  --rail: #1e2a33;
+  --rail-text: #9fb0bd;
+  --rail-active: #ffffff;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(16, 24, 32, .05), 0 1px 1px rgba(16, 24, 32, .03);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #11181e;
+    --surface: #182129;
+    --surface-2: #1d2831;
+    --border: #2a3742;
+    --text: #e3e9ee;
+    --text-2: #a4b1bc;
+    --muted: #6d7c88;
+    --primary: #2ec4ae;
+    --primary-soft: #16332f;
+    --on: #3ecf7a;
+    --on-soft: #183324;
+    --off: #6d7c88;
+    --off-soft: #222d36;
+    --rail: #0c1115;
+    --shadow: none;
+    color-scheme: dark;
+  }
+}
+
+/* ---------- Base ---------- */
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  display: flex;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+code, pre { font-family: var(--mono); font-size: 13px; }
+
+.muted { color: var(--muted); }
+
+/* ---------- Icon rail ---------- */
+
+.rail {
+  position: sticky;
+  top: 0;
+  flex: 0 0 64px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 0;
+  background: var(--rail);
+  color: var(--rail-text);
+}
+
+.rail svg { width: 22px; height: 22px; display: block; }
+
+.rail-logo {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
+}
+
+.rail-items { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+
+.nav-item, .rail-action {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.nav-item:hover, .rail-action:hover { background: rgba(255, 255, 255, .07); color: var(--rail-active); }
+
+.nav-item.active { background: rgba(255, 255, 255, .1); color: var(--rail-active); }
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--primary);
+}
+
+.nav-label {
+  position: absolute;
+  left: 54px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #0c1115;
+  color: #fff;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s;
+  z-index: 10;
+}
+
+.nav-item:hover .nav-label, .nav-item:focus-visible .nav-label { opacity: 1; }
+
+/* ---------- Shell ---------- */
+
+.shell { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 56px;
+  padding: 8px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-title { margin: 0; font-size: 17px; font-weight: 600; }
+
+.topbar-meta { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; color: var(--text-2); font-size: 13px; }
+.meta-host { font-weight: 600; color: var(--text); }
+.meta-file { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meta-host + .meta-file::before { content: "·"; margin-right: 10px; color: var(--muted); }
+.meta-warn { color: var(--warn); cursor: help; }
+
+body:not(.has-config) .topbar-open { display: none; }
+
+.main { padding: 24px 28px 48px; max-width: 1480px; width: 100%; }
+
+/* ---------- Buttons, alerts ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-ghost { background: transparent; border-color: var(--border); color: var(--text); }
+.btn-ghost:hover { background: var(--surface-2); }
+
+.alert {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  color: var(--danger);
+  background: var(--surface);
+}
+
+/* ---------- Empty state / drop ---------- */
+
+.empty-state { display: grid; place-items: center; min-height: calc(100vh - 160px); }
+
+.dropzone {
+  max-width: 460px;
+  padding: 44px 40px;
+  text-align: center;
+  border: 2px dashed var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.dropzone h1 { margin: 12px 0 6px; font-size: 19px; }
+.dropzone p { margin: 0 0 18px; color: var(--text-2); }
+.dropzone .privacy { margin: 18px 0 0; font-size: 12px; color: var(--muted); }
+.dropzone-icon { width: 52px; height: 52px; margin: 0 auto; color: var(--primary); }
+
+.drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  place-items: center;
+  background: rgba(10, 143, 126, .12);
+  border: 3px dashed var(--primary);
+  pointer-events: none;
+}
+
+.drop-overlay span { padding: 12px 20px; border-radius: 10px; background: var(--surface); font-weight: 600; box-shadow: var(--shadow); }
+body.dragging .drop-overlay { display: grid; }
+
+/* ---------- Layout ---------- */
+
+/*
+ * One shared column grid for every card row, so card edges line up across
+ * sections and cards in the same row get the same height.
+ */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+@media (max-width: 1200px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .card-ports { grid-column: 1 / -1; }
+}
+
+@media (max-width: 760px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .main { padding: 16px; }
+  .topbar { padding: 8px 16px; }
+}
+
+.section { margin-top: 32px; }
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.count {
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--off-soft);
+  color: var(--text-2);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+/* ---------- Cards ---------- */
+
+.card {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.card[style*="--accent"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--accent);
+}
+
+.card-inactive { opacity: .62; }
+
+.card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px 0;
+}
+
+.card-title { margin: 0; font-size: 15px; font-weight: 600; }
+.card-subtitle { margin: 2px 0 0; color: var(--text-2); font-size: 13px; }
+.card-body { flex: 1; padding: 12px 18px 16px; }
+
+.empty-note { margin: 0; color: var(--muted); font-style: italic; }
+
+/* ---------- Key/value ---------- */
+
+.kv {
+  display: grid;
+  grid-template-columns: 136px minmax(0, 1fr); /* fixed so all cards align */
+  gap: 6px 16px;
+  margin: 0;
+}
+
+.kv dt { color: var(--text-2); }
+.kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+
+.addr-list + .kv, .chain + .kv, .empty-note + .kv { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+/* ---------- Pills, flags, chips ---------- */
+
+.pill {
+  display: inline-block;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pill-on { background: var(--on-soft); color: var(--on); }
+.pill-off { background: var(--off-soft); color: var(--off); }
+
+.flag { display: inline-flex; align-items: center; gap: 6px; }
+.flag-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--off); }
+.flag-on .flag-dot { background: var(--on); box-shadow: 0 0 0 3px var(--on-soft); }
+.flag-off { color: var(--text-2); }
+
+.chip {
+  --chip: var(--off);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 1px 4px 1px 0;
+  padding: 1px 9px 1px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.chip-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--chip); }
+
+/* ---------- Tables ---------- */
+
+.table-wrap { overflow-x: auto; margin: 0 -18px; }
+
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 7px 18px; text-align: left; vertical-align: middle; }
+.table th { font-size: 12px; font-weight: 600; color: var(--text-2); border-bottom: 1px solid var(--border); }
+.table tbody tr + tr td { border-top: 1px solid var(--border); }
+
+.port-badge {
+  display: inline-block;
+  min-width: 34px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--rail);
+  color: #fff;
+  font: 600 12px var(--mono);
+  text-align: center;
+}
+
+/* ---------- System ---------- */
+
+.note { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.note-label { color: var(--text-2); margin-bottom: 4px; }
+.note-text { margin: 0; white-space: pre-wrap; font-family: inherit; font-size: inherit; }
+.note p { margin: 0; }
+
+/* ---------- Network cards ---------- */
+
+.addr-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+
+.addr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--primary-soft);
+}
+
+.addr-off { background: var(--off-soft); }
+.addr-ip { font-size: 15px; font-weight: 600; }
+.addr-mask { color: var(--text-2); font: 12px var(--mono); }
+.addr-desc { flex-basis: 100%; color: var(--text-2); font-size: 13px; }
+
+.dhcp-range + .dhcp-range { margin-top: 4px; }
+
+.chain { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.chain code { font-weight: 600; }

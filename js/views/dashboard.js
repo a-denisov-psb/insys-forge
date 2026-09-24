@@ -1,0 +1,332 @@
+/*
+ * Dashboard: system info, port assignment, firewall status and one card per
+ * configured LAN / WAN / VPN interface. Only configuration state is shown –
+ * runtime values (uptime, serial number, online state) are not part of the export.
+ */
+(function (root) {
+  'use strict';
+
+  const Forge = root.Forge;
+  const ui = Forge.ui;
+  const h = ui.h;
+
+  const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/>' +
+    '<rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>';
+
+  // Fields that hold secrets or are pure noise; never rendered in generic tunnel cards.
+  const HIDDEN_FIELD = /pass|psk|secret|key|pin$|^pin|token|list_uid|^_index$/i;
+
+  // Tunnel list containers below "interfaces" (config key: interfaces.<type>.tunnel[n]).
+  const TUNNEL_TYPES = [
+    { type: 'ipsec', label: 'IPsec', render: ipsecBody },
+    { type: 'openvpn', label: 'OpenVPN', render: openvpnBody },
+    { type: 'gre', label: 'GRE', render: genericBody },
+    { type: 'dmvpn', label: 'DMVPN', render: genericBody },
+    { type: 'pptp', label: 'PPTP', render: genericBody },
+    { type: 'pppoe', label: 'PPPoE', render: genericBody },
+  ];
+
+  function render(config) {
+    const nets = config.list('interfaces.ip_nets.net');
+    const netsByName = {};
+    nets.forEach(function (n) { netsByName[n.name] = n; });
+    const ports = collectPorts(config);
+
+    return h('div', { class: 'dashboard' },
+      h('div', { class: 'grid' },
+        systemCard(config),
+        firewallCard(config),
+        portsCard(ports, netsByName)),
+      lanSection(config, nets, ports),
+      wanSection(config),
+      vpnSection(config));
+  }
+
+  /* ---------- System ---------- */
+
+  function systemCard(config) {
+    const hn = config.node('administration.hostnames') || {};
+    const time = config.node('administration.time') || {};
+    const note = hn.device_note;
+    const body = ui.kvList([
+      ['Hostname', hn.hostname],
+      ['Domain', hn.domainname],
+      ['Location', hn.location],
+      ['Time zone', time.timezone],
+      ['NTP server', time.ntp_peer === undefined ? undefined : [time.ntp_peer, time.ntp_peer2].filter(Boolean).join(', ')],
+    ]);
+    return ui.card({
+      title: 'System',
+      className: 'card-system',
+      body: [
+        body || ui.emptyNote('No system settings in this config.'),
+        note !== undefined
+          ? h('div', { class: 'note' },
+            h('div', { class: 'note-label' }, 'Device note'),
+            note ? h('pre', { class: 'note-text' }, note) : h('p', { class: 'muted' }, ui.EMPTY))
+          : null,
+      ],
+    });
+  }
+
+  /* ---------- Firewall status ---------- */
+
+  function firewallCard(config) {
+    const ip = config.node('netfilter.ip_filter') || {};
+    const mac = config.node('netfilter.mac_filter') || {};
+    const rules = config.list('netfilter.ip_filter.rule');
+    const activeRules = rules.filter(function (r) { return ui.isOn(r.rule_active); }).length;
+    const macRules = config.list('netfilter.mac_filter.rule');
+
+    const body = ui.kvList([
+      ['IPv4 filter', ui.flag(ip.active_v4)],
+      ['IPv6 filter', ui.flag(ip.active_v6)],
+      ['MAC filter', ui.flag(mac.active)],
+      ['IP rules', rules.length ? activeRules + ' active / ' + rules.length : undefined],
+      ['MAC rules', macRules.length ? String(macRules.length) : undefined],
+    ]);
+    return ui.card({ title: 'Firewall', body: body || ui.emptyNote('No firewall settings in this config.') });
+  }
+
+  /* ---------- Ports ---------- */
+
+  function collectPorts(config) {
+    const ports = [];
+    const ifaces = config.node('interfaces') || {};
+    Object.keys(ifaces).forEach(function (ifName) {
+      if (!/^ethernet\d+$/.test(ifName)) return;
+      const eth = ifaces[ifName];
+      Object.keys(eth).forEach(function (key) {
+        const m = /^port(\d+)_active$/.exec(key);
+        if (!m) return;
+        const p = 'port' + m[1] + '_';
+        ports.push({
+          iface: ifName,
+          number: Number(m[1]),
+          net: eth[key],
+          multiNets: eth[p + 'multi_nets'],
+          autoneg: eth[p + 'autoneg'],
+          speed: eth[p + 'speed'],
+          duplex: eth[p + 'duplex'],
+        });
+      });
+    });
+    ports.sort(function (a, b) { return a.iface.localeCompare(b.iface) || a.number - b.number; });
+    return ports;
+  }
+
+  function netChip(name, netsByName) {
+    if (ui.isUnset(name)) return h('span', { class: 'muted' }, ui.EMPTY);
+    const net = netsByName[name];
+    return h('span', { class: 'chip', style: net && net.color ? { '--chip': net.color } : null, title: net ? net.description : null },
+      h('span', { class: 'chip-dot' }), name);
+  }
+
+  function linkMode(port) {
+    if (port.autoneg === undefined) return undefined;
+    if (ui.isOn(port.autoneg)) return 'Auto';
+    return [port.speed ? port.speed + ' Mbit/s' : null, port.duplex || null].filter(Boolean).join(' ') || 'Manual';
+  }
+
+  function portsCard(ports, netsByName) {
+    if (!ports.length) return ui.card({ title: 'Ports', body: ui.emptyNote('No Ethernet ports in this config.') });
+    const multiIface = new Set(ports.map(function (p) { return p.iface; })).size > 1;
+    const hasMulti = ports.some(function (p) { return !ui.isUnset(p.multiNets); });
+
+    const rows = ports.map(function (p) {
+      const net = netsByName[p.net];
+      return h('tr', null,
+        h('td', { class: 'port-cell' }, h('span', { class: 'port-badge' }, (multiIface ? p.iface.replace('ethernet', 'E') + '.' : '') + 'P' + p.number)),
+        h('td', null, netChip(p.net, netsByName)),
+        h('td', { class: net && net.description ? null : 'muted' }, net && net.description ? net.description : ui.EMPTY),
+        hasMulti ? h('td', null, ui.isUnset(p.multiNets) ? h('span', { class: 'muted' }, ui.EMPTY)
+          : p.multiNets.split(',').map(function (n) { return netChip(n.trim(), netsByName); })) : null,
+        h('td', { class: 'muted' }, linkMode(p) || ui.EMPTY));
+    });
+
+    const table = h('table', { class: 'table' },
+      h('thead', null, h('tr', null,
+        h('th', null, 'Port'), h('th', null, 'Network'), h('th', null, 'Description'),
+        hasMulti ? h('th', null, 'Additional nets') : null, h('th', null, 'Link'))),
+      h('tbody', null, rows));
+    return ui.card({ title: 'Ports', className: 'card-ports', body: h('div', { class: 'table-wrap' }, table) });
+  }
+
+  /* ---------- LAN / IP networks ---------- */
+
+  function lanSection(config, nets, ports) {
+    const dhcpServers = config.list('services.dhcp_server.server');
+    // A full export always carries the "services.dhcp_server.server.delete" directive,
+    // so "no server for this net" is a configured state, not missing data.
+    const dhcpManaged = config.node('services.dhcp_server') !== undefined ||
+      config.directives.some(function (d) { return d.key.indexOf('services.dhcp_server.') === 0; });
+    const cards = nets.map(function (net) { return netCard(net, ports, dhcpServers, dhcpManaged); });
+    return ui.section('IP networks', nets.length,
+      cards.length ? h('div', { class: 'grid' }, cards) : ui.emptyNote('No IP networks configured.'));
+  }
+
+  function netCard(net, ports, dhcpServers, dhcpManaged) {
+    const assigned = ports.filter(function (p) {
+      return p.net === net.name || (!ui.isUnset(p.multiNets) && p.multiNets.split(',').map(function (s) { return s.trim(); }).indexOf(net.name) !== -1);
+    }).map(function (p) { return 'P' + p.number; });
+
+    const addresses = (net.ip_address || []).filter(Boolean);
+    const servers = dhcpServers.filter(function (s) { return s.interface === net.name; });
+
+    const addressList = addresses.length
+      ? h('ul', { class: 'addr-list' }, addresses.map(function (a) {
+        return h('li', { class: 'addr' + (ui.isOn(a.ip_active) || a.ip_active === undefined ? '' : ' addr-off') },
+          h('code', { class: 'addr-ip' }, ui.formatCidr(a.ip_address, a.netmask) || ui.EMPTY),
+          a.netmask !== undefined && /^\d+$/.test(a.netmask) ? h('span', { class: 'addr-mask' }, ui.formatNetmask(a.netmask).replace(/^\/\d+ /, '')) : null,
+          a.ip_description ? h('span', { class: 'addr-desc' }, a.ip_description) : null,
+          a.ip_active !== undefined && !ui.isOn(a.ip_active) ? h('span', { class: 'pill pill-off' }, 'Inactive') : null);
+      }))
+      : null;
+
+    const dhcpServerValue = servers.length
+      ? servers.map(function (s) {
+        return h('div', { class: 'dhcp-range' + (ui.isOn(s.active) ? '' : ' muted') },
+          ui.flag(s.active), ' ', [s.start_ip, s.end_ip].filter(Boolean).join(' – '),
+          s.leasetime ? h('span', { class: 'muted' }, ' · lease ' + s.leasetime + ' min') : null);
+      })
+      : (dhcpManaged ? ui.flag('0') : undefined);
+
+    return ui.card({
+      title: net.name,
+      subtitle: net.description || null,
+      accent: net.color,
+      inactive: net.active !== undefined && !ui.isOn(net.active),
+      aside: net.active !== undefined ? ui.statusPill(net.active) : null,
+      body: [
+        addressList || ui.emptyNote('No IPv4 address configured.'),
+        ui.kvList([
+          ['Mode', net.mode],
+          ['DHCP client', ui.flag(net.dhcpv4_active)],
+          ['DHCPv6 client', ui.flag(net.dhcpv6_active)],
+          ['SLAAC', ui.flag(net.slaac_active)],
+          ['DHCP server', dhcpServerValue],
+          ['VLAN tag', net.vlan_tag],
+          ['MTU', net.mtu],
+          ['MAC', net.mac_mode === undefined ? undefined : (net.mac_mode === 'automatic' ? 'automatic' : (net.user_defined_mac || net.mac_mode))],
+          ['Ports', ports.length ? (assigned.join(', ') || '') : undefined],
+        ]),
+      ],
+    });
+  }
+
+  /* ---------- WAN ---------- */
+
+  function wanSection(config) {
+    const cards = [];
+    const wans = config.node('wan.wans') || {};
+
+    config.list('wan.wans.wan_chain').forEach(function (chain) {
+      const ifaces = (chain.interface || []).filter(Boolean);
+      cards.push(ui.card({
+        title: chain.name,
+        subtitle: chain.description || 'WAN chain',
+        inactive: wans.active !== undefined && !ui.isOn(wans.active),
+        aside: wans.active !== undefined ? ui.statusPill(wans.active) : null,
+        body: [
+          ifaces.length
+            ? h('ol', { class: 'chain' }, ifaces.map(function (i) {
+              return h('li', null, h('code', null, i.interface),
+                !ui.isUnset(i.check_type) && i.check_type !== 'none'
+                  ? h('span', { class: 'muted' }, ' · check: ' + i.check_type + (i.ping_target ? ' ' + i.ping_target : '') + (i.dns_target ? ' ' + i.dns_target : ''))
+                  : null);
+            }))
+            : ui.emptyNote('No interfaces in this chain.'),
+          ui.kvList([
+            ['Lifetime', chain.lifetime_active === undefined ? undefined : (ui.isOn(chain.lifetime_active) ? (chain.lifetime || '') + ' → ' + (chain.lifetime_wan || '') : 'Off')],
+          ]),
+        ],
+      }));
+    });
+
+    // Mobile interfaces (e.g. interfaces.lte2) are identified by their APN setting.
+    const ifaces = config.node('interfaces') || {};
+    Object.keys(ifaces).forEach(function (name) {
+      const iface = ifaces[name];
+      if (!iface || Array.isArray(iface) || typeof iface !== 'object' || iface.apn === undefined) return;
+      cards.push(ui.card({
+        title: name,
+        subtitle: (iface.description || '').trim() || 'Mobile interface',
+        body: ui.kvList([
+          ['APN', iface.apn],
+          ['Authentication', iface.auth],
+          ['IP version', iface.ip_version],
+          ['Provider selection', iface.provider_mode],
+          ['Radio', ['allow_2g', 'allow_3g', 'allow_4g', 'allow_5g']
+            .filter(function (k) { return iface[k] !== undefined; })
+            .map(function (k) { return ui.isOn(iface[k]) ? k.slice(6).toUpperCase() : null; })
+            .filter(Boolean).join(' / ') || undefined],
+          ['SIM slots', iface.first_channel === undefined ? undefined : [iface.first_channel, iface.second_channel].filter(function (c) { return c && c !== '0'; }).join(', ')],
+          ['APN (2nd SIM)', iface.apn2],
+          ['MTU', iface.mtu],
+        ]),
+      }));
+    });
+
+    return ui.section('WAN', cards.length,
+      cards.length ? h('div', { class: 'grid' }, cards) : ui.emptyNote('No WAN configured.'));
+  }
+
+  /* ---------- VPN ---------- */
+
+  function vpnSection(config) {
+    const cards = [];
+    TUNNEL_TYPES.forEach(function (t) {
+      config.list('interfaces.' + t.type + '.tunnel').forEach(function (tunnel) {
+        cards.push(ui.card({
+          title: tunnel.name || t.label + ' ' + tunnel._index,
+          subtitle: [t.label, tunnel.description].filter(Boolean).join(' · '),
+          inactive: tunnel.active !== undefined && !ui.isOn(tunnel.active),
+          aside: tunnel.active !== undefined ? ui.statusPill(tunnel.active) : null,
+          body: t.render(tunnel),
+        }));
+      });
+    });
+    return ui.section('VPN', cards.length,
+      cards.length ? h('div', { class: 'grid' }, cards) : ui.emptyNote('No VPN tunnels configured.'));
+  }
+
+  function ipsecBody(t) {
+    return ui.kvList([
+      ['Peer', t.peer],
+      ['Local IP', t.local_ip === undefined ? undefined : ui.formatCidr(t.local_ip, t.local_ip_nm)],
+      ['Local net', t.local_net === undefined ? undefined : ui.formatCidr(t.local_net, t.local_netmask)],
+      ['Remote net', t.remote_net === undefined ? undefined : ui.formatCidr(t.remote_net, t.remote_netmask)],
+      ['IKE', t.ike_version === undefined ? undefined : [t.ike_version.replace('ike_', 'IKE').replace('_v', 'v'), t.ike_cipher, t.ike_hash, t.ike_dh].filter(Boolean).join(' · ')],
+      ['ESP', t.ipsec_cipher === undefined ? undefined : [t.ipsec_cipher, t.ipsec_hash, t.ipsec_dh].filter(Boolean).join(' · ')],
+      ['Authentication', t.authentication],
+      ['Local ID', t.local_id],
+      ['Remote ID', t.remote_id],
+      ['Interface', t.tunnel_interface],
+    ]);
+  }
+
+  function openvpnBody(t) {
+    return ui.kvList([
+      ['Mode', t.mode],
+      ['Peer', t.peer === undefined ? undefined : [t.peer, t.peer2].filter(function (p) { return !ui.isUnset(p); }).join(', ')],
+      ['Protocol / port', t.protocol === undefined ? undefined : t.protocol + (t.rport ? ' : ' + t.rport : '')],
+      ['Local VPN IP', t.local_vpn_ipv4],
+      ['Remote VPN IP', t.remote_vpn_ipv4],
+      ['Remote net', t.remote_netv4 === undefined ? undefined : ui.formatCidr(t.remote_netv4, t.remote_netmaskv4)],
+      ['Address pool', t.pool_ipv4 === undefined ? undefined : ui.formatCidr(t.pool_ipv4, t.pool_netmaskv4)],
+      ['Authentication', t.authentication],
+      ['Default route', ui.flag(t.defaultroute)],
+    ]);
+  }
+
+  function genericBody(t) {
+    const rows = Object.keys(t)
+      .filter(function (k) { return !HIDDEN_FIELD.test(k) && k !== 'name' && k !== 'description' && k !== 'active'; })
+      .filter(function (k) { return typeof t[k] === 'string' && !ui.isUnset(t[k]); })
+      .map(function (k) { return [k.replace(/_/g, ' '), t[k]]; });
+    return ui.kvList(rows) || ui.emptyNote('No further settings.');
+  }
+
+  Forge.views.register({ id: 'dashboard', label: 'Dashboard', icon: ICON, render: render });
+})(window);
