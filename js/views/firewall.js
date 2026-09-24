@@ -77,13 +77,15 @@
   }
 
   function detailPanel(rule, netsByName) {
-    const body = ui.kvList([
+    const left = ui.kvList([
       ['Active', rule.rule_active === undefined ? undefined : activePill(rule.rule_active)],
       ['Type', rule.rule_direction === undefined ? undefined : (DIRECTION_LABEL[rule.rule_direction] || rule.rule_direction)],
       ['Protocol', rule.rule_protocol === undefined ? undefined : protocolBadge(rule.rule_protocol)],
       ['From', rule.rule_input_if === undefined ? undefined : ifaceChips(rule.rule_input_if, netsByName)],
       ['To', rule.rule_output_if === undefined ? undefined : ifaceChips(rule.rule_output_if, netsByName)],
       ['Description', rule.rule_description],
+    ]);
+    const right = ui.kvList([
       ['Source address', ui.formatCidr(rule.rule_saddr, rule.rule_snetmask)],
       ['Source port', portRange(rule.rule_sport, rule.rule_sport_end)],
       ['Destination address', ui.formatCidr(rule.rule_daddr, rule.rule_dnetmask)],
@@ -91,7 +93,8 @@
       ['IP version', rule.rule_ipversion],
       ['Rule name', rule.rule_name],
     ]);
-    return body || ui.emptyNote('No further settings for this rule.');
+    if (!left && !right) return ui.emptyNote('No further settings for this rule.');
+    return h('div', { class: 'rule-detail-grid' }, left, right);
   }
 
   /* ---------- Filters ---------- */

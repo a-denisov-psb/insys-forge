@@ -319,6 +319,7 @@ body.dragging .drop-overlay { display: grid; }
   .grid { grid-template-columns: minmax(0, 1fr); }
   .main { padding: 16px; }
   .topbar { padding: 8px 16px; }
+  .rule-detail-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 .section { margin-top: 32px; }
@@ -566,6 +567,9 @@ body.dragging .drop-overlay { display: grid; }
 .table-firewall .rule-row.open { background: var(--surface-2); }
 
 .rule-detail > td { padding-top: 12px; padding-bottom: 14px; background: var(--surface-2); border-top: none !important; }
+
+.rule-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 32px; }
+.rule-detail-grid > .kv { align-content: start; }
 
 .type-icon { display: inline-flex; color: var(--text-2); }
 
