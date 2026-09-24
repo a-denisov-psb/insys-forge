@@ -26,7 +26,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #11181e;
     --surface: #182129;
     --surface-2: #1d2831;
@@ -44,6 +44,25 @@
     --shadow: none;
     color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #11181e;
+  --surface: #182129;
+  --surface-2: #1d2831;
+  --border: #2a3742;
+  --text: #e3e9ee;
+  --text-2: #a4b1bc;
+  --muted: #6d7c88;
+  --primary: #2ec4ae;
+  --primary-soft: #16332f;
+  --on: #3ecf7a;
+  --on-soft: #183324;
+  --off: #6d7c88;
+  --off-soft: #222d36;
+  --rail: #0c1115;
+  --shadow: none;
+  color-scheme: dark;
 }
 
 /* ---------- Base ---------- */
@@ -144,6 +163,32 @@ code, pre { font-family: var(--mono); font-size: 13px; }
 }
 
 .nav-item:hover .nav-label, .nav-item:focus-visible .nav-label { opacity: 1; }
+
+.rail-theme-toggle {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rail-theme-toggle:hover { background: rgba(255, 255, 255, .07); color: var(--rail-active); }
+
+.rail-theme-toggle .icon-moon { display: none; }
+
+/* Default (light): show the sun (click to go dark). Dark theme: show the moon. */
+:root[data-theme="dark"] .rail-theme-toggle .icon-sun { display: none; }
+:root[data-theme="dark"] .rail-theme-toggle .icon-moon { display: block; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .rail-theme-toggle .icon-sun { display: none; }
+  :root:not([data-theme="light"]) .rail-theme-toggle .icon-moon { display: block; }
+}
 
 /* ---------- Shell ---------- */
 

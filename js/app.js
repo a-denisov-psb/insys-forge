@@ -43,6 +43,7 @@
     const fileInput = document.getElementById('file-input');
     const title = document.getElementById('topbar-title');
     const meta = document.getElementById('topbar-meta');
+    const themeToggle = document.getElementById('theme-toggle');
 
     state.viewId = viewFromHash() || (views[0] && views[0].id);
 
@@ -64,6 +65,11 @@
       if (fileInput.files[0]) loadFile(fileInput.files[0]);
       fileInput.value = '';
     });
+
+    themeToggle.addEventListener('click', function () {
+      setTheme(isDarkActive() ? 'light' : 'dark');
+    });
+    syncThemeToggleLabel();
 
     root.addEventListener('hashchange', function () {
       const id = viewFromHash();
@@ -92,6 +98,23 @@
       const file = e.dataTransfer && e.dataTransfer.files[0];
       if (file) loadFile(file);
     });
+
+    function isDarkActive() {
+      const theme = document.documentElement.dataset.theme;
+      return theme === 'dark' || (!theme && root.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+
+    function setTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      try { localStorage.setItem('forge-theme', theme); } catch (e) { /* localStorage unavailable */ }
+      syncThemeToggleLabel();
+    }
+
+    function syncThemeToggleLabel() {
+      const label = isDarkActive() ? 'Switch to light mode' : 'Switch to dark mode';
+      themeToggle.title = label;
+      themeToggle.setAttribute('aria-label', label);
+    }
 
     function viewFromHash() {
       const id = root.location.hash.slice(1);
