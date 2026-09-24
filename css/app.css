@@ -295,6 +295,9 @@ body.dragging .drop-overlay { display: grid; }
 
 @media (max-width: 1200px) {
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* System, Users and Firewall no longer fit in one row at 2 columns; stretch System
+     so Users + Firewall pair up cleanly underneath instead of leaving a gap. */
+  .card-system { grid-column: 1 / -1; }
 }
 
 @media (max-width: 760px) {
