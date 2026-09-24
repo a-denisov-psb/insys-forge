@@ -34,7 +34,7 @@
     const ports = collectPorts(config);
 
     return h('div', { class: 'dashboard' },
-      h('div', { class: 'grid grid-top' },
+      h('div', { class: 'grid' },
         systemCard(config),
         firewallCard(config),
         portsCard(ports, netsByName)),
@@ -163,7 +163,7 @@
       config.directives.some(function (d) { return d.key.indexOf('services.dhcp_server.') === 0; });
     const cards = nets.map(function (net) { return netCard(net, ports, dhcpServers, dhcpManaged); });
     return ui.section('IP networks', nets.length,
-      cards.length ? h('div', { class: 'grid grid-cards' }, cards) : ui.emptyNote('No IP networks configured.'));
+      cards.length ? h('div', { class: 'grid' }, cards) : ui.emptyNote('No IP networks configured.'));
   }
 
   function netCard(net, ports, dhcpServers, dhcpManaged) {
@@ -269,7 +269,7 @@
     });
 
     return ui.section('WAN', cards.length,
-      cards.length ? h('div', { class: 'grid grid-cards' }, cards) : ui.emptyNote('No WAN configured.'));
+      cards.length ? h('div', { class: 'grid' }, cards) : ui.emptyNote('No WAN configured.'));
   }
 
   /* ---------- VPN ---------- */
@@ -288,7 +288,7 @@
       });
     });
     return ui.section('VPN', cards.length,
-      cards.length ? h('div', { class: 'grid grid-cards' }, cards) : ui.emptyNote('No VPN tunnels configured.'));
+      cards.length ? h('div', { class: 'grid' }, cards) : ui.emptyNote('No VPN tunnels configured.'));
   }
 
   function ipsecBody(t) {
