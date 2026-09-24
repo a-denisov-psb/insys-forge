@@ -35,32 +35,9 @@
       }));
   }
 
-  /* ---------- Protocol badges ---------- */
+  /* ---------- Protocol filter labels (badge colors/text live in ui.protocolBadge) ---------- */
 
-  const KNOWN_PROTOCOLS = ['tcp', 'udp', 'icmp', 'icmpv6', 'esp', 'all'];
   const PROTOCOL_LABEL = { icmpv6: 'ICMPv6' };
-
-  function protocolBadge(protocol) {
-    if (ui.isUnset(protocol)) return h('span', { class: 'muted' }, ui.EMPTY);
-    const known = KNOWN_PROTOCOLS.indexOf(protocol) !== -1;
-    const label = PROTOCOL_LABEL[protocol] || protocol.toUpperCase();
-    return h('span', { class: 'badge badge-' + (known ? protocol : 'other') }, label);
-  }
-
-  /* ---------- From/To interface chips ---------- */
-
-  function ifaceChip(name, netsByName) {
-    if (name === 'all') return h('span', { class: 'chip chip-all' }, h('span', { class: 'chip-dot' }), 'All');
-    const net = netsByName[name];
-    return h('span', { class: 'chip', style: net && net.color ? { '--chip': net.color } : null, title: net ? net.description : null },
-      h('span', { class: 'chip-dot' }), name);
-  }
-
-  function ifaceChips(value, netsByName) {
-    if (ui.isUnset(value)) return h('span', { class: 'muted' }, ui.EMPTY);
-    return value.split(',').map(function (n) { return n.trim(); }).filter(Boolean)
-      .map(function (n) { return ifaceChip(n, netsByName); });
-  }
 
   /* ---------- Active pill (shared by the column and the detail panel) ---------- */
 
@@ -80,9 +57,9 @@
     const left = ui.kvList([
       ['Active', rule.rule_active === undefined ? undefined : activePill(rule.rule_active)],
       ['Type', rule.rule_direction === undefined ? undefined : (DIRECTION_LABEL[rule.rule_direction] || rule.rule_direction)],
-      ['Protocol', rule.rule_protocol === undefined ? undefined : protocolBadge(rule.rule_protocol)],
-      ['From', rule.rule_input_if === undefined ? undefined : ifaceChips(rule.rule_input_if, netsByName)],
-      ['To', rule.rule_output_if === undefined ? undefined : ifaceChips(rule.rule_output_if, netsByName)],
+      ['Protocol', rule.rule_protocol === undefined ? undefined : ui.protocolBadge(rule.rule_protocol)],
+      ['From', rule.rule_input_if === undefined ? undefined : ui.ifaceChips(rule.rule_input_if, netsByName)],
+      ['To', rule.rule_output_if === undefined ? undefined : ui.ifaceChips(rule.rule_output_if, netsByName)],
       ['Description', rule.rule_description],
     ]);
     const right = ui.kvList([
@@ -106,7 +83,7 @@
   }
 
   function filterSelect(label, options, allLabel) {
-    return h('select', { class: 'ff-filter', 'aria-label': label },
+    return h('select', { class: 'rule-filter', 'aria-label': label },
       h('option', { value: '' }, allLabel),
       options.map(function (o) { return h('option', { value: o.value }, o.label); }));
   }
@@ -130,15 +107,15 @@
     const netsByName = {};
     config.list('interfaces.ip_nets.net').forEach(function (n) { netsByName[n.name] = n; });
 
-    const search = h('input', { type: 'search', class: 'ff-search', placeholder: 'Search all rule fields…', 'aria-label': 'Search all rule fields' });
+    const search = h('input', { type: 'search', class: 'rule-search', placeholder: 'Search all rule fields…', 'aria-label': 'Search all rule fields' });
     const activeFilter = filterSelect('Filter by active state', [{ value: '1', label: 'Active' }, { value: '0', label: 'Inactive' }], 'All');
     const directionFilter = filterSelect('Filter by type', distinctValues(rules, 'rule_direction').map(function (v) { return { value: v, label: DIRECTION_LABEL[v] || v }; }), 'All');
     const protocolFilter = filterSelect('Filter by protocol', distinctValues(rules, 'rule_protocol').map(function (v) { return { value: v, label: PROTOCOL_LABEL[v] || v.toUpperCase() }; }), 'All');
-    const fromFilter = h('input', { type: 'text', class: 'ff-filter', placeholder: '…', 'aria-label': 'Filter by "from" interface' });
-    const toFilter = h('input', { type: 'text', class: 'ff-filter', placeholder: '…', 'aria-label': 'Filter by "to" interface' });
-    const descFilter = h('input', { type: 'text', class: 'ff-filter', placeholder: '…', 'aria-label': 'Filter by description' });
+    const fromFilter = h('input', { type: 'text', class: 'rule-filter', placeholder: '…', 'aria-label': 'Filter by "from" interface' });
+    const toFilter = h('input', { type: 'text', class: 'rule-filter', placeholder: '…', 'aria-label': 'Filter by "to" interface' });
+    const descFilter = h('input', { type: 'text', class: 'rule-filter', placeholder: '…', 'aria-label': 'Filter by description' });
 
-    const resultCount = h('span', { class: 'ff-count' }, rules.length + ' rules');
+    const resultCount = h('span', { class: 'rule-count' }, rules.length + ' rules');
 
     const entries = rules.map(function (rule) {
       const detail = h('tr', { class: 'row-detail', hidden: true }, h('td', { colspan: '7' }, detailPanel(rule, netsByName)));
@@ -151,9 +128,9 @@
         h('td', { class: 'muted' }, String(rule._index)),
         h('td', null, activePill(rule.rule_active)),
         h('td', null, directionIcon(rule.rule_direction)),
-        h('td', null, protocolBadge(rule.rule_protocol)),
-        h('td', null, ifaceChips(rule.rule_input_if, netsByName)),
-        h('td', null, ifaceChips(rule.rule_output_if, netsByName)),
+        h('td', null, ui.protocolBadge(rule.rule_protocol)),
+        h('td', null, ui.ifaceChips(rule.rule_input_if, netsByName)),
+        h('td', null, ui.ifaceChips(rule.rule_output_if, netsByName)),
         h('td', null, ui.isUnset(rule.rule_description) ? h('span', { class: 'muted' }, ui.EMPTY) : rule.rule_description));
 
       function toggle() {
@@ -215,7 +192,7 @@
         h('tr', null,
           h('th', null, 'Nr.'), h('th', null, 'Active'), h('th', null, 'Type'), h('th', null, 'Protocol'),
           h('th', null, 'From'), h('th', null, 'To'), h('th', null, 'Description')),
-        h('tr', { class: 'ff-filter-row' },
+        h('tr', { class: 'rule-filter-row' },
           h('th', null), h('th', null, activeFilter), h('th', null, directionFilter), h('th', null, protocolFilter),
           h('th', null, fromFilter), h('th', null, toFilter), h('th', null, descFilter))),
       tbody);
@@ -225,7 +202,7 @@
         title: 'Firewall rules',
         className: 'card-firewall',
         body: [
-          h('div', { class: 'firewall-toolbar' }, search, resultCount),
+          h('div', { class: 'rule-toolbar' }, search, resultCount),
           h('div', { class: 'table-wrap' }, table),
         ],
       }));
