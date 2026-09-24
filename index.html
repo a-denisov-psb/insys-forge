@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The config contains secrets: forbid any network requests from scripts. -->
+  <meta http-equiv="Content-Security-Policy" content="connect-src 'none'; form-action 'none'">
+  <title>INSYS Forge</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <nav class="rail" aria-label="Main navigation">
+    <div class="rail-logo" title="INSYS Forge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7h16M4 12h16M4 17h10"/><circle cx="18" cy="17" r="2"/>
+      </svg>
+    </div>
+    <div id="nav" class="rail-items"></div>
+    <button class="rail-action" type="button" data-action="open-file" title="Open config file" aria-label="Open config file">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      </svg>
+    </button>
+  </nav>
+
+  <div class="shell">
+    <header class="topbar">
+      <h1 id="topbar-title" class="topbar-title">INSYS Forge</h1>
+      <div id="topbar-meta" class="topbar-meta"></div>
+      <button class="btn btn-ghost topbar-open" type="button" data-action="open-file">Open file…</button>
+    </header>
+    <main id="main" class="main"></main>
+  </div>
+
+  <div class="drop-overlay" aria-hidden="true"><span>Drop config file to open</span></div>
+  <input id="file-input" type="file" accept=".txt,.cfg,.conf,text/plain" hidden>
+
+  <script src="js/parser.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+  <!-- Views: each script registers one navigation entry, in this order. -->
+  <script src="js/views/dashboard.js"></script>
+  <script>Forge.start();</script>
+</body>
+</html>
