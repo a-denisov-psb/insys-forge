@@ -7,6 +7,15 @@
   <meta http-equiv="Content-Security-Policy" content="connect-src 'none'; form-action 'none'">
   <title>INSYS Forge</title>
   <link rel="stylesheet" href="css/app.css">
+  <script>
+    // Applied before first paint to avoid a flash of the wrong theme.
+    (function () {
+      try {
+        const stored = localStorage.getItem('forge-theme');
+        if (stored === 'dark' || stored === 'light') document.documentElement.dataset.theme = stored;
+      } catch (e) { /* localStorage unavailable (e.g. private mode) */ }
+    })();
+  </script>
 </head>
 <body>
   <nav class="rail" aria-label="Main navigation">
@@ -16,6 +25,15 @@
       </svg>
     </button>
     <div id="nav" class="rail-items"></div>
+    <button id="theme-toggle" class="rail-theme-toggle" type="button" title="Switch to dark mode" aria-label="Switch to dark mode">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>
+      </svg>
+    </button>
   </nav>
 
   <div class="shell">
