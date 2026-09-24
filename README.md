@@ -1,5 +1,7 @@
 # INSYS Forge
 
+**➡️ [Open the live app](https://a-denisov-psb.github.io/insys-forge/)**
+
 Renders the configuration export of an INSYS icom OS router (flat `key=value` file) as a
 readable, icom-OS-like web view. It is a **documentation tool** for maintenance work –
 not a management portal: there is no connection to the router and no backend.
