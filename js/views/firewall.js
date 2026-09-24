@@ -1,7 +1,7 @@
 /*
  * Firewall: table of all netfilter.ip_filter rules with type icons, protocol badges,
  * per-column filters, a global full-text search (incl. fields not shown as columns) and
- * a per-row detail panel for source/destination address, port and IP version.
+ * a per-row detail panel listing every field of the rule.
  */
 (function (root) {
   'use strict';
@@ -62,7 +62,13 @@
       .map(function (n) { return ifaceChip(n, netsByName); });
   }
 
-  /* ---------- Detail panel (fields not shown as a column) ---------- */
+  /* ---------- Active pill (shared by the column and the detail panel) ---------- */
+
+  function activePill(active) {
+    return active === undefined ? h('span', { class: 'muted' }, ui.EMPTY) : ui.statusPill(active);
+  }
+
+  /* ---------- Detail panel (every rule field, including ones already shown as a column) ---------- */
 
   function portRange(start, end) {
     if (ui.isUnset(start)) return ui.isUnset(end) ? undefined : end;
@@ -70,8 +76,14 @@
     return start + '–' + end;
   }
 
-  function detailPanel(rule) {
+  function detailPanel(rule, netsByName) {
     const body = ui.kvList([
+      ['Active', rule.rule_active === undefined ? undefined : activePill(rule.rule_active)],
+      ['Type', rule.rule_direction === undefined ? undefined : (DIRECTION_LABEL[rule.rule_direction] || rule.rule_direction)],
+      ['Protocol', rule.rule_protocol === undefined ? undefined : protocolBadge(rule.rule_protocol)],
+      ['From', rule.rule_input_if === undefined ? undefined : ifaceChips(rule.rule_input_if, netsByName)],
+      ['To', rule.rule_output_if === undefined ? undefined : ifaceChips(rule.rule_output_if, netsByName)],
+      ['Description', rule.rule_description],
       ['Source address', ui.formatCidr(rule.rule_saddr, rule.rule_snetmask)],
       ['Source port', portRange(rule.rule_sport, rule.rule_sport_end)],
       ['Destination address', ui.formatCidr(rule.rule_daddr, rule.rule_dnetmask)],
@@ -126,7 +138,7 @@
     const resultCount = h('span', { class: 'ff-count' }, rules.length + ' rules');
 
     const entries = rules.map(function (rule) {
-      const detail = h('tr', { class: 'rule-detail', hidden: true }, h('td', { colspan: '7' }, detailPanel(rule)));
+      const detail = h('tr', { class: 'rule-detail', hidden: true }, h('td', { colspan: '7' }, detailPanel(rule, netsByName)));
       const tr = h('tr', {
         class: 'rule-row',
         tabindex: '0',
@@ -134,7 +146,7 @@
         'aria-expanded': 'false',
       },
         h('td', { class: 'muted' }, String(rule._index)),
-        h('td', null, rule.rule_active === undefined ? h('span', { class: 'muted' }, ui.EMPTY) : ui.statusPill(rule.rule_active)),
+        h('td', null, activePill(rule.rule_active)),
         h('td', null, directionIcon(rule.rule_direction)),
         h('td', null, protocolBadge(rule.rule_protocol)),
         h('td', null, ifaceChips(rule.rule_input_if, netsByName)),
