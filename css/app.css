@@ -380,9 +380,86 @@ body.dragging .drop-overlay { display: grid; }
 
 .card-title { margin: 0; font-size: 15px; font-weight: 600; }
 .card-subtitle { margin: 2px 0 0; color: var(--text-2); font-size: 13px; }
-.card-body { flex: 1; padding: 12px 18px 16px; }
+.card-body { flex: 1; display: flex; flex-direction: column; padding: 12px 18px 16px; }
 
 .empty-note { margin: 0; color: var(--muted); font-style: italic; }
+
+/* ---------- Card footer link / modal ---------- */
+
+/* Pushed to the bottom of the card body, so it lines up across cards of different heights in the same row. */
+.card-more { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); text-align: right; }
+
+.link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.link-btn:hover { text-decoration: underline; }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(16, 24, 32, .45);
+}
+
+.modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title { margin: 0; font-size: 16px; font-weight: 600; }
+.modal-subtitle { margin: 2px 0 0; color: var(--text-2); font-size: 13px; }
+
+.modal-close {
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.modal-close:hover { background: var(--surface-2); color: var(--text); }
+
+.modal-body { padding: 16px 18px 18px; overflow-y: auto; }
+
+.detail-group + .detail-group { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+.detail-group-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
 
 /* ---------- Key/value ---------- */
 
@@ -396,7 +473,7 @@ body.dragging .drop-overlay { display: grid; }
 .kv dt { color: var(--text-2); }
 .kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 
-.addr-list + .kv, .chain + .kv, .empty-note + .kv { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.addr-list + .kv, .empty-note + .kv, .kv + .chain-steps, .kv + .empty-note { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
 
 /* ---------- Pills, flags, chips ---------- */
 
@@ -553,6 +630,10 @@ body.dragging .drop-overlay { display: grid; }
 
 .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 32px; }
 .detail-grid > .kv { align-content: start; }
+
+/* Single-column grouped layout for rule detail panels (Firewall, NAT), so rows never misalign
+   the way a two-up grid does once one side wraps to more lines than the other. */
+.detail-panel { max-width: 640px; }
 
 /* ---------- Rule tables (Firewall, NAT): search box + per-column filter row ---------- */
 

@@ -134,6 +134,51 @@
     return h('p', { class: 'empty-note' }, text);
   }
 
+  /* ---------- Modal ---------- */
+
+  let modalBackdrop = null;
+  let modalKeyHandler = null;
+
+  function closeModal() {
+    if (!modalBackdrop) return;
+    document.removeEventListener('keydown', modalKeyHandler);
+    modalBackdrop.remove();
+    modalBackdrop = null;
+    modalKeyHandler = null;
+  }
+
+  /** Single-instance dialog for "show everything" details that don't fit a card. */
+  function openModal(options) {
+    closeModal();
+    const dialog = h('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true' },
+      h('header', { class: 'modal-head' },
+        h('div', { class: 'modal-titles' },
+          h('h3', { class: 'modal-title' }, options.title),
+          options.subtitle ? h('p', { class: 'modal-subtitle' }, options.subtitle) : null),
+        h('button', { class: 'modal-close', type: 'button', 'aria-label': 'Close', onclick: closeModal }, '×')),
+      h('div', { class: 'modal-body' }, options.body));
+    modalBackdrop = h('div', {
+      class: 'modal-backdrop',
+      onclick: function (e) { if (e.target === modalBackdrop) closeModal(); },
+    }, dialog);
+    document.body.appendChild(modalBackdrop);
+    modalKeyHandler = function (e) { if (e.key === 'Escape') closeModal(); };
+    document.addEventListener('keydown', modalKeyHandler);
+  }
+
+  /** A labelled group of kv rows inside a modal; omitted entirely when every row is empty. */
+  function detailGroup(title, rows) {
+    const list = kvList(rows);
+    if (!list) return null;
+    return h('div', { class: 'detail-group' }, h('h4', { class: 'detail-group-title' }, title), list);
+  }
+
+  /** Footer link on a card that opens a modal with the full field set. */
+  function moreLink(onOpen) {
+    return h('div', { class: 'card-more' },
+      h('button', { class: 'link-btn', type: 'button', onclick: onOpen }, 'More details…'));
+  }
+
   /* ---------- netfilter (firewall / NAT) rule fields, shared across views ---------- */
 
   const KNOWN_PROTOCOLS = ['tcp', 'udp', 'icmp', 'icmpv6', 'esp', 'all'];
@@ -174,6 +219,10 @@
     card: card,
     section: section,
     emptyNote: emptyNote,
+    openModal: openModal,
+    closeModal: closeModal,
+    detailGroup: detailGroup,
+    moreLink: moreLink,
     protocolBadge: protocolBadge,
     ifaceChips: ifaceChips,
   };

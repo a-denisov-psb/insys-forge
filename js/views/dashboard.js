@@ -19,8 +19,8 @@
 
   // Tunnel list containers below "interfaces" (config key: interfaces.<type>.tunnel[n]).
   const TUNNEL_TYPES = [
-    { type: 'ipsec', label: 'IPsec', render: ipsecBody },
-    { type: 'openvpn', label: 'OpenVPN', render: openvpnBody },
+    { type: 'ipsec', label: 'IPsec', render: ipsecBody, detail: ipsecFullBody },
+    { type: 'openvpn', label: 'OpenVPN', render: openvpnBody, detail: openvpnFullBody },
     { type: 'gre', label: 'GRE', render: genericBody },
     { type: 'dmvpn', label: 'DMVPN', render: genericBody },
     { type: 'pptp', label: 'PPTP', render: genericBody },
@@ -339,14 +339,14 @@
         inactive: wans.active !== undefined && !ui.isOn(wans.active),
         aside: wans.active !== undefined ? ui.statusPill(wans.active) : null,
         body: [
+          ui.kvList([
+            ['Lifetime limit', chain.lifetime_active === undefined ? undefined : (ui.isOn(chain.lifetime_active) ? (chain.lifetime || '') + ' → ' + (chain.lifetime_wan || '') : 'Off')],
+          ]),
           steps.length
             ? h('div', { class: 'chain-steps' }, steps.map(function (step, i) {
               return chainStepCard(step, i + 1, chain, wanGroups, labels);
             }))
             : ui.emptyNote('No interfaces in this chain.'),
-          ui.kvList([
-            ['Lifetime limit', chain.lifetime_active === undefined ? undefined : (ui.isOn(chain.lifetime_active) ? (chain.lifetime || '') + ' → ' + (chain.lifetime_wan || '') : 'Off')],
-          ]),
         ],
       }));
     });
@@ -385,12 +385,18 @@
     const cards = [];
     TUNNEL_TYPES.forEach(function (t) {
       config.list('interfaces.' + t.type + '.tunnel').forEach(function (tunnel) {
+        const title = tunnel.name || t.label + ' ' + tunnel._index;
         cards.push(ui.card({
-          title: tunnel.name || t.label + ' ' + tunnel._index,
+          title: title,
           subtitle: [t.label, tunnel.description].filter(Boolean).join(' · '),
           inactive: tunnel.active !== undefined && !ui.isOn(tunnel.active),
           aside: tunnel.active !== undefined ? ui.statusPill(tunnel.active) : null,
-          body: t.render(tunnel),
+          body: [
+            t.render(tunnel),
+            t.detail ? ui.moreLink(function () {
+              ui.openModal({ title: title, subtitle: t.label + ' · all settings', body: t.detail(tunnel) });
+            }) : null,
+          ],
         }));
       });
     });
@@ -413,6 +419,55 @@
     ]);
   }
 
+  /** Everything the curated IPsec card leaves out, for the "More details" modal. */
+  function ipsecFullBody(t) {
+    return [
+      ui.detailGroup('Addressing', [
+        ['Peer', t.peer],
+        ['Local IP', t.local_ip === undefined ? undefined : ui.formatCidr(t.local_ip, t.local_ip_nm)],
+        ['Local net', t.local_net === undefined ? undefined : ui.formatCidr(t.local_net, t.local_netmask)],
+        ['Remote net', t.remote_net === undefined ? undefined : ui.formatCidr(t.remote_net, t.remote_netmask)],
+        ['Local ID', t.local_id],
+        ['Remote ID', t.remote_id],
+        ['Local protocol / port', [t.protocol_local, t.port_local].filter(function (v) { return !ui.isUnset(v); }).join(' : ') || undefined],
+        ['Remote protocol / port', [t.protocol_remote, t.port_remote].filter(function (v) { return !ui.isUnset(v); }).join(' : ') || undefined],
+        ['MTU', t.mtu],
+        ['Tunnel interface', t.tunnel_interface],
+      ]),
+      ui.detailGroup('IKE (phase 1)', [
+        ['IKE version', t.ike_version === undefined ? undefined : t.ike_version.replace('ike_', 'IKE').replace('_v', 'v')],
+        ['IKEv1 mode', t.ike_v1_mode],
+        ['Proposal', t.ike_param],
+        ['Cipher', t.ike_cipher],
+        ['Hash', t.ike_hash],
+        ['DH group', t.ike_dh],
+        ['PRF', t.ike_prf],
+        ['Rekeying', ui.flag(t.ike_reneg)],
+        ['Rekey interval', ui.isUnset(t.ike_reneg_interval) ? undefined : t.ike_reneg_interval + ' s'],
+      ]),
+      ui.detailGroup('IPsec (phase 2)', [
+        ['Proposal', t.ipsec_param],
+        ['Cipher', t.ipsec_cipher],
+        ['Hash', t.ipsec_hash],
+        ['DH group (PFS)', t.ipsec_dh],
+        ['Rekey interval', ui.isUnset(t.ipsec_reneg_interval) ? undefined : t.ipsec_reneg_interval + ' s'],
+        ['NAT-T encapsulation', ui.flag(t.encap)],
+      ]),
+      ui.detailGroup('Dead peer detection', [
+        ['Interval', ui.isUnset(t.dpd_interval) ? undefined : t.dpd_interval + ' s'],
+        ['Timeout', ui.isUnset(t.dpd_timeout) ? undefined : t.dpd_timeout + ' s'],
+        ['Action', t.dpd_action],
+      ]),
+      ui.detailGroup('Authentication', [
+        ['Authentication', t.authentication],
+        ['CA certificate', t.ca],
+        ['Client certificate', t.cert],
+        ['Revocation policy', t.revocation_policy],
+        ['Connect timer', ui.isUnset(t.connect_timer) ? undefined : t.connect_timer + ' s'],
+      ]),
+    ].filter(Boolean);
+  }
+
   function openvpnBody(t) {
     return ui.kvList([
       ['Mode', t.mode],
@@ -425,6 +480,73 @@
       ['Authentication', t.authentication],
       ['Default route', ui.flag(t.defaultroute)],
     ]);
+  }
+
+  /** Everything the curated OpenVPN card leaves out, for the "More details" modal. */
+  function openvpnFullBody(t) {
+    return [
+      ui.detailGroup('Connection', [
+        ['Mode', t.mode],
+        ['Peer', t.peer === undefined ? undefined : [t.peer, t.peer2].filter(function (p) { return !ui.isUnset(p); }).join(', ')],
+        ['Protocol', t.protocol],
+        ['Local port', t.lport],
+        ['Remote port', t.rport],
+        ['No bind', ui.flag(t.nobind)],
+        ['Float', ui.flag(t.float)],
+        ['Default route', ui.flag(t.defaultroute)],
+        ['Connect timer', ui.isUnset(t.connect_timer) ? undefined : t.connect_timer + ' s'],
+      ]),
+      ui.detailGroup('Proxy', [
+        ['Proxy server', t.proxy_server],
+        ['Proxy type', t.proxy_type],
+        ['Proxy port', t.proxy_port],
+        ['Proxy username', t.proxy_username],
+      ]),
+      ui.detailGroup('Tunnel network', [
+        ['Local VPN IP', t.local_vpn_ipv4],
+        ['Remote VPN IP', t.remote_vpn_ipv4],
+        ['Remote net (IPv4)', t.remote_netv4 === undefined ? undefined : ui.formatCidr(t.remote_netv4, t.remote_netmaskv4)],
+        ['Local VPN IP (v6)', t.local_vpn_ipv6],
+        ['Remote VPN IP (v6)', t.remote_vpn_ipv6],
+        ['Remote net (IPv6)', t.remote_netv6 === undefined ? undefined : ui.formatCidr(t.remote_netv6, t.remote_netmaskv6)],
+      ]),
+      ui.detailGroup('Server settings', [
+        ['Address pool (IPv4)', t.pool_ipv4 === undefined ? undefined : ui.formatCidr(t.pool_ipv4, t.pool_netmaskv4)],
+        ['Address pool (IPv6)', t.pool_ipv6 === undefined ? undefined : ui.formatCidr(t.pool_ipv6, t.pool_netmaskv6)],
+        ['Client-to-client', ui.flag(t.client_to_client)],
+        ['Check client certificate', ui.flag(t.check_client_cert)],
+      ]),
+      ui.detailGroup('Authentication', [
+        ['Authentication', t.authentication],
+        ['Username', t.username],
+        ['CA certificate', t.ca],
+        ['Client certificate', t.cert],
+        ['TLS auth key', t.tls_auth],
+        ['TLS auth direction', t.tls_auth_dir],
+        ['TLS crypt key', t.tls_crypt],
+        ['Check server certificate', ui.flag(t.check_server_cert)],
+        ['Server CRL', t.server_crl],
+        ['DH parameter', t.server_dh_parameter],
+      ]),
+      ui.detailGroup('Encryption', [
+        ['Encryption', t.encryption],
+        ['Data ciphers', t.data_ciphers],
+        ['Data cipher fallback', t.data_ciphers_fallback],
+        ['Cipher (legacy)', t.cipher],
+        ['Hash / digest', t.hash],
+        ['LZO compression', ui.flag(t.comp_lzo)],
+      ]),
+      ui.detailGroup('Advanced', [
+        ['Log level', t.log_level],
+        ['Fragment size', t.fragment],
+        ['Renegotiation interval', ui.isUnset(t.reneg) ? undefined : t.reneg + ' s'],
+        ['Keepalive ping interval', ui.isUnset(t.ping) ? undefined : t.ping + ' s'],
+        ['Keepalive restart timeout', ui.isUnset(t.restart) ? undefined : t.restart + ' s'],
+        ['mssfix', t.mssfix],
+        ['Link MTU', t.link_mtu],
+        ['Tun MTU', t.tun_mtu],
+      ]),
+    ].filter(Boolean);
   }
 
   function genericBody(t) {
