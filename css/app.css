@@ -380,13 +380,14 @@ body.dragging .drop-overlay { display: grid; }
 
 .card-title { margin: 0; font-size: 15px; font-weight: 600; }
 .card-subtitle { margin: 2px 0 0; color: var(--text-2); font-size: 13px; }
-.card-body { flex: 1; padding: 12px 18px 16px; }
+.card-body { flex: 1; display: flex; flex-direction: column; padding: 12px 18px 16px; }
 
 .empty-note { margin: 0; color: var(--muted); font-style: italic; }
 
 /* ---------- Card footer link / modal ---------- */
 
-.card-more { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); text-align: right; }
+/* Pushed to the bottom of the card body, so it lines up across cards of different heights in the same row. */
+.card-more { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); text-align: right; }
 
 .link-btn {
   padding: 0;
