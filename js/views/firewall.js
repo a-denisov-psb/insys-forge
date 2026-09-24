@@ -79,24 +79,26 @@
   /* ---------- IP filter rules ---------- */
 
   function detailPanel(rule, netsByName) {
-    const left = ui.kvList([
-      ['Active', rule.rule_active === undefined ? undefined : activePill(rule.rule_active)],
-      ['Type', rule.rule_direction === undefined ? undefined : (DIRECTION_LABEL[rule.rule_direction] || rule.rule_direction)],
-      ['Protocol', rule.rule_protocol === undefined ? undefined : ui.protocolBadge(rule.rule_protocol)],
-      ['From', rule.rule_input_if === undefined ? undefined : ui.ifaceChips(rule.rule_input_if, netsByName)],
-      ['To', rule.rule_output_if === undefined ? undefined : ui.ifaceChips(rule.rule_output_if, netsByName)],
-      ['Description', rule.rule_description],
-    ]);
-    const right = ui.kvList([
-      ['Source address', ui.formatCidr(rule.rule_saddr, rule.rule_snetmask)],
-      ['Source port', portRange(rule.rule_sport, rule.rule_sport_end)],
-      ['Destination address', ui.formatCidr(rule.rule_daddr, rule.rule_dnetmask)],
-      ['Destination port', portRange(rule.rule_dport, rule.rule_dport_end)],
-      ['IP version', rule.rule_ipversion],
-      ['Rule name', rule.rule_name],
-    ]);
-    if (!left && !right) return ui.emptyNote('No further settings for this rule.');
-    return h('div', { class: 'detail-grid' }, left, right);
+    const groups = [
+      ui.detailGroup('Rule', [
+        ['Active', rule.rule_active === undefined ? undefined : activePill(rule.rule_active)],
+        ['Type', rule.rule_direction === undefined ? undefined : (DIRECTION_LABEL[rule.rule_direction] || rule.rule_direction)],
+        ['Protocol', rule.rule_protocol === undefined ? undefined : ui.protocolBadge(rule.rule_protocol)],
+        ['Rule name', rule.rule_name],
+        ['Description', rule.rule_description],
+      ]),
+      ui.detailGroup('Match', [
+        ['From', rule.rule_input_if === undefined ? undefined : ui.ifaceChips(rule.rule_input_if, netsByName)],
+        ['To', rule.rule_output_if === undefined ? undefined : ui.ifaceChips(rule.rule_output_if, netsByName)],
+        ['Source address', ui.formatCidr(rule.rule_saddr, rule.rule_snetmask)],
+        ['Source port', portRange(rule.rule_sport, rule.rule_sport_end)],
+        ['Destination address', ui.formatCidr(rule.rule_daddr, rule.rule_dnetmask)],
+        ['Destination port', portRange(rule.rule_dport, rule.rule_dport_end)],
+        ['IP version', rule.rule_ipversion],
+      ]),
+    ].filter(Boolean);
+    if (!groups.length) return ui.emptyNote('No further settings for this rule.');
+    return h('div', { class: 'detail-panel' }, groups);
   }
 
   function ipFilterCard(config, netsByName) {
@@ -231,16 +233,19 @@
     const netsByName = opts.netsByName;
 
     function natDetailPanel(rule) {
-      const left = ui.kvList([
-        ['Active', rule.rule_active === undefined ? undefined : activePill(rule.rule_active)],
-        ['Type', rule.rule_type === undefined ? undefined : (opts.typeLabels[rule.rule_type] || rule.rule_type)],
-        ['Protocol', rule.rule_protocol === undefined ? undefined : ui.protocolBadge(rule.rule_protocol)],
-        [opts.ifaceColumn, rule[opts.ifaceField] === undefined ? undefined : ui.ifaceChips(rule[opts.ifaceField], netsByName)],
-        ['Description', rule.rule_description],
-      ]);
-      const right = ui.kvList(opts.extraDetailRows(rule));
-      if (!left && !right) return ui.emptyNote('No further settings for this rule.');
-      return h('div', { class: 'detail-grid' }, left, right);
+      const groups = [
+        ui.detailGroup('Rule', [
+          ['Active', rule.rule_active === undefined ? undefined : activePill(rule.rule_active)],
+          ['Type', rule.rule_type === undefined ? undefined : (opts.typeLabels[rule.rule_type] || rule.rule_type)],
+          ['Protocol', rule.rule_protocol === undefined ? undefined : ui.protocolBadge(rule.rule_protocol)],
+          [opts.ifaceColumn, rule[opts.ifaceField] === undefined ? undefined : ui.ifaceChips(rule[opts.ifaceField], netsByName)],
+          ['Rule name', rule.rule_name],
+          ['Description', rule.rule_description],
+        ]),
+        ui.detailGroup('Match & translation', opts.extraDetailRows(rule)),
+      ].filter(Boolean);
+      if (!groups.length) return ui.emptyNote('No further settings for this rule.');
+      return h('div', { class: 'detail-panel' }, groups);
     }
 
     const search = h('input', { type: 'search', class: 'rule-search', placeholder: 'Search all rule fields…', 'aria-label': 'Search all rule fields' });
@@ -355,7 +360,6 @@
           ['Destination port', portRange(rule.rule_dport, rule.rule_dport_end)],
           ['Translated address', rule.rule_snat_addr],
           ['Translated port', portRange(rule.rule_snat_port, rule.rule_snat_port_end)],
-          ['Rule name', rule.rule_name],
         ];
       },
     });
@@ -378,7 +382,6 @@
           ['Destination port', portRange(rule.rule_dport, rule.rule_dport_end)],
           ['Translated address', rule.rule_dnat_addr],
           ['Translated port', portRange(rule.rule_dnat_port, rule.rule_dnat_port_end)],
-          ['Rule name', rule.rule_name],
         ];
       },
     });
