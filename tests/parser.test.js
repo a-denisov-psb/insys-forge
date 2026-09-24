@@ -79,6 +79,36 @@ test('warns about unterminated multi-line values', () => {
   assert.equal(cfg.warnings.length, 1);
 });
 
+test('normalizes legacy flat interfaces.netN into interfaces.ip_nets.net', () => {
+  const cfg = parseConfig([
+    'interfaces.net1.active=1',
+    'interfaces.net1.description=LAN',
+    'interfaces.net1.ip_address[1].ip_address=192.168.10.1',
+    'interfaces.net1.ip_address[1].netmask=24',
+    'interfaces.net3.active=1',
+    'interfaces.net3.description=WAN',
+    'services.dhcp_server.server[1].active=1',
+    'services.dhcp_server.server[1].start_ip=192.168.10.250',
+    'services.dhcp_server.server[3].active=0',
+  ].join('\n'));
+
+  const nets = cfg.list('interfaces.ip_nets.net');
+  assert.deepEqual(nets.map((n) => n.name), ['net1', 'net3']);
+  assert.equal(nets[0].description, 'LAN');
+  assert.equal(nets[0].ip_address[0].ip_address, '192.168.10.1');
+
+  const servers = cfg.list('services.dhcp_server.server');
+  assert.deepEqual(servers.map((s) => s.interface), ['net1', 'net3']);
+});
+
+test('leaves interfaces.ip_nets.net untouched when already present', () => {
+  const cfg = parseConfig([
+    'interfaces.ip_nets.net[1].name=net1',
+    'interfaces.net9.description=should be ignored',
+  ].join('\n'));
+  assert.deepEqual(cfg.list('interfaces.ip_nets.net').map((n) => n.name), ['net1']);
+});
+
 test('parses the reference example config', () => {
   const cfg = parseConfig(example);
   assert.equal(cfg.warnings.length, 0, JSON.stringify(cfg.warnings));
