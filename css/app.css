@@ -463,3 +463,56 @@ body.dragging .drop-overlay { display: grid; }
 
 .chain { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
 .chain code { font-weight: 600; }
+
+/* ---------- WAN chain ---------- */
+
+.chain-steps { display: grid; gap: 8px; }
+
+.chain-step {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.chain-step-static { padding: 10px 12px; }
+
+.chain-step > summary {
+  padding: 10px 12px;
+  list-style: none;
+  cursor: pointer;
+}
+.chain-step > summary::-webkit-details-marker { display: none; }
+.chain-step > summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 14px;
+  color: var(--muted);
+  transition: transform .12s;
+}
+.chain-step[open] > summary::before { transform: rotate(90deg); }
+
+.chain-step-head { display: flex; align-items: flex-start; gap: 10px; }
+
+.chain-step-pos {
+  flex: 0 0 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--off-soft);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.chain-step-main { flex: 1; min-width: 0; display: grid; gap: 4px; }
+
+.chain-members { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.chain-member { display: flex; align-items: baseline; gap: 6px; font-size: 13px; }
+.chain-member code { font-weight: 600; }
+
+.chain-step-hint { margin: 0; font-size: 12.5px; }
+
+.chain-step-body { padding: 0 12px 12px 42px; }
+
+.pill-info { background: var(--primary-soft); color: var(--primary); }
