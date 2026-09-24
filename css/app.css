@@ -594,9 +594,9 @@ body.dragging .drop-overlay { display: grid; }
 
 .chip-all { --chip: var(--muted); }
 
-/* ---------- NAT ---------- */
+/* ---------- Firewall (IP filter + NAT rule tables, stacked) ---------- */
 
-.nat { display: grid; gap: 24px; }
+.firewall { display: grid; gap: 24px; }
 
 /* ---------- Routing ---------- */
 
