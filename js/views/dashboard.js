@@ -39,7 +39,7 @@
         firewallCard(config),
         portsCard(ports, netsByName)),
       lanSection(config, nets, ports),
-      wanSection(config),
+      wanSection(config, netsByName),
       vpnSection(config));
   }
 
@@ -217,28 +217,108 @@
 
   /* ---------- WAN ---------- */
 
-  function wanSection(config) {
+  /** Maps every addressable interface name to its description, for lookups from the WAN chain. */
+  function interfaceLabels(config, netsByName) {
+    const labels = {};
+    Object.keys(netsByName).forEach(function (name) { labels[name] = netsByName[name].description; });
+    TUNNEL_TYPES.forEach(function (t) {
+      config.list('interfaces.' + t.type + '.tunnel').forEach(function (tunnel) {
+        if (tunnel.name) labels[tunnel.name] = tunnel.description;
+      });
+    });
+    const ifaces = config.node('interfaces') || {};
+    Object.keys(ifaces).forEach(function (name) {
+      const iface = ifaces[name];
+      if (labels[name] === undefined && iface && !Array.isArray(iface) && typeof iface === 'object' && typeof iface.description === 'string') {
+        labels[name] = iface.description;
+      }
+    });
+    return labels;
+  }
+
+  /** WAN groups bundle several interfaces under one name; a chain position can target the group instead of a single interface. */
+  function wanGroupMap(config) {
+    const map = {};
+    config.list('wan.wan_groups.wan_group').forEach(function (g) {
+      map[g.name] = {
+        name: g.name,
+        description: g.description,
+        members: (g.interfaces || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean),
+      };
+    });
+    return map;
+  }
+
+  /** What happens when this position's interface (or group) goes offline. */
+  function chainFailureText(step, chain, isGroup) {
+    if (isGroup) return 'Restart interface(s) only (WAN group)';
+    if (ui.isUnset(step.check_fail_wan)) return undefined;
+    return step.check_fail_wan === chain.name
+      ? 'Restart this WAN chain'
+      : 'Start WAN chain "' + step.check_fail_wan + '"';
+  }
+
+  /** Optional active connection check (DNS/ping/link) layered on top of the interface's own link state. */
+  function chainCheckDetail(step) {
+    if (ui.isUnset(step.check_type) || step.check_type === 'none') return null;
+    const target = step.check_type === 'dns' ? step.dns_target
+      : step.check_type === 'ping' ? step.ping_target
+        : step.check_type === 'link' ? step.link_port
+          : undefined;
+    return ui.kvList([
+      ['Check type', step.check_type],
+      ['Target', target],
+      ['Check interval', ui.isUnset(step.check_interval) ? undefined : step.check_interval + ' s'],
+      ['Failures before restart', step.check_failures],
+      ['Recheck interval', ui.isUnset(step.recheck_interval) ? undefined : step.recheck_interval + ' s'],
+    ]);
+  }
+
+  function chainStepCard(step, position, chain, wanGroups, labels) {
+    const group = wanGroups[step.interface];
+    const isGroup = !!group;
+    const members = isGroup ? group.members : [step.interface];
+    const hint = chainFailureText(step, chain, isGroup);
+
+    const head = h('div', { class: 'chain-step-head' },
+      h('span', { class: 'chain-step-pos' }, String(position)),
+      h('div', { class: 'chain-step-main' },
+        h('div', { class: 'chain-members' }, members.map(function (m) {
+          return h('div', { class: 'chain-member' },
+            h('code', null, m),
+            labels[m] ? h('span', { class: 'muted' }, labels[m]) : null);
+        })),
+        isGroup ? h('span', { class: 'pill pill-info' }, 'WAN group' + (group.description ? ' · ' + group.description : '')) : null,
+        hint ? h('p', { class: 'chain-step-hint muted' }, 'On failure: ' + hint) : null));
+
+    const detail = chainCheckDetail(step);
+    if (!detail) return h('div', { class: 'chain-step chain-step-static' }, head);
+    return h('details', { class: 'chain-step' },
+      h('summary', null, head),
+      h('div', { class: 'chain-step-body' }, detail));
+  }
+
+  function wanSection(config, netsByName) {
     const cards = [];
     const wans = config.node('wan.wans') || {};
+    const wanGroups = wanGroupMap(config);
+    const labels = interfaceLabels(config, netsByName);
 
     config.list('wan.wans.wan_chain').forEach(function (chain) {
-      const ifaces = (chain.interface || []).filter(Boolean);
+      const steps = (chain.interface || []).filter(Boolean);
       cards.push(ui.card({
         title: chain.name,
         subtitle: chain.description || 'WAN chain',
         inactive: wans.active !== undefined && !ui.isOn(wans.active),
         aside: wans.active !== undefined ? ui.statusPill(wans.active) : null,
         body: [
-          ifaces.length
-            ? h('ol', { class: 'chain' }, ifaces.map(function (i) {
-              return h('li', null, h('code', null, i.interface),
-                !ui.isUnset(i.check_type) && i.check_type !== 'none'
-                  ? h('span', { class: 'muted' }, ' · check: ' + i.check_type + (i.ping_target ? ' ' + i.ping_target : '') + (i.dns_target ? ' ' + i.dns_target : ''))
-                  : null);
+          steps.length
+            ? h('div', { class: 'chain-steps' }, steps.map(function (step, i) {
+              return chainStepCard(step, i + 1, chain, wanGroups, labels);
             }))
             : ui.emptyNote('No interfaces in this chain.'),
           ui.kvList([
-            ['Lifetime', chain.lifetime_active === undefined ? undefined : (ui.isOn(chain.lifetime_active) ? (chain.lifetime || '') + ' → ' + (chain.lifetime_wan || '') : 'Off')],
+            ['Lifetime limit', chain.lifetime_active === undefined ? undefined : (ui.isOn(chain.lifetime_active) ? (chain.lifetime || '') + ' → ' + (chain.lifetime_wan || '') : 'Off')],
           ]),
         ],
       }));
