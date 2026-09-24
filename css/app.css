@@ -88,14 +88,18 @@ code, pre { font-family: var(--mono); font-size: 13px; }
   display: grid;
   place-items: center;
   margin-bottom: 14px;
+  border: 0;
   border-radius: 10px;
   background: var(--primary);
   color: #fff;
+  cursor: pointer;
 }
+
+.rail-logo:hover { filter: brightness(1.08); }
 
 .rail-items { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 
-.nav-item, .rail-action {
+.nav-item {
   position: relative;
   width: 44px;
   height: 44px;
@@ -109,7 +113,7 @@ code, pre { font-family: var(--mono); font-size: 13px; }
   text-decoration: none;
 }
 
-.nav-item:hover, .rail-action:hover { background: rgba(255, 255, 255, .07); color: var(--rail-active); }
+.nav-item:hover { background: rgba(255, 255, 255, .07); color: var(--rail-active); }
 
 .nav-item.active { background: rgba(255, 255, 255, .1); color: var(--rail-active); }
 .nav-item.active::before {
@@ -164,8 +168,6 @@ code, pre { font-family: var(--mono); font-size: 13px; }
 .meta-file { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .meta-host + .meta-file::before { content: "·"; margin-right: 10px; color: var(--muted); }
 .meta-warn { color: var(--warn); cursor: help; }
-
-body:not(.has-config) .topbar-open { display: none; }
 
 .main { padding: 24px 28px 48px; max-width: 1480px; width: 100%; }
 
