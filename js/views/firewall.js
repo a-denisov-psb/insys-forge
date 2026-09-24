@@ -20,7 +20,7 @@
   const DIRECTION_ICON = {
     input: '<path d="M1 8h8"/><path d="m6 4 4 4-4 4"/><path d="M13 3v10"/>',
     output: '<path d="M3 3v10"/><path d="M3 8h9"/><path d="m8 4 4 4-4 4"/>',
-    forward: '<path d="M1 8h7"/><path d="m4 4 4 4-4 4"/><path d="M8 3v10"/><path d="M8 8h7"/><path d="m11 4 4 4-4 4"/>',
+    forward: '<path d="M0 8h6"/><path d="m2 4 4 4-4 4"/><path d="M8 3v10"/><path d="M8 8h7"/><path d="m11 4 4 4-4 4"/>',
   };
 
   function directionIcon(direction) {
