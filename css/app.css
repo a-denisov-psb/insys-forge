@@ -288,6 +288,9 @@ body.dragging .drop-overlay { display: grid; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   align-items: stretch;
+  /* Lets a later 1-column card (e.g. Users below 1200px) backfill a gap left by an
+     earlier full-width card instead of leaving an empty cell. */
+  grid-auto-flow: dense;
 }
 
 /* The ports table reads better spanning the full row than sharing a column with kv cards. */
@@ -295,9 +298,10 @@ body.dragging .drop-overlay { display: grid; }
 
 @media (max-width: 1200px) {
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  /* System, Users and Firewall no longer fit in one row at 2 columns; stretch System
-     so Users + Firewall pair up cleanly underneath instead of leaving a gap. */
-  .card-system { grid-column: 1 / -1; }
+  /* System, Users and Firewall no longer fit in one row at 2 columns; give the
+     table-style Users card its own full-width row (like Ports) so System and
+     Firewall can pair up cleanly instead of leaving a gap. */
+  .card-users { grid-column: 1 / -1; }
 }
 
 @media (max-width: 760px) {

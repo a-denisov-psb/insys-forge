@@ -94,7 +94,7 @@
     const table = h('table', { class: 'table' },
       h('thead', null, h('tr', null, h('th', null, 'Username'), h('th', null, 'Permissions'), h('th', null, 'Active'))),
       h('tbody', null, rows));
-    return ui.card({ title: 'Users', body: h('div', { class: 'table-wrap' }, table) });
+    return ui.card({ title: 'Users', className: 'card-users', body: h('div', { class: 'table-wrap' }, table) });
   }
 
   /* ---------- Firewall status ---------- */
