@@ -37,6 +37,7 @@
       h('div', { class: 'grid' },
         systemCard(config),
         firewallCard(config),
+        usersCard(config),
         portsCard(ports, netsByName)),
       lanSection(config, nets, ports),
       wanSection(config, netsByName),
@@ -68,6 +69,32 @@
           : null,
       ],
     });
+  }
+
+  /* ---------- Users ---------- */
+
+  const USER_GROUP_LABEL = { readwrite: 'Read/write', read: 'Read only', status: 'Status only' };
+
+  function userGroupBadge(group) {
+    if (ui.isUnset(group)) return h('span', { class: 'muted' }, ui.EMPTY);
+    return h('span', { class: 'pill pill-group-' + group }, USER_GROUP_LABEL[group] || group);
+  }
+
+  function usersCard(config) {
+    const users = config.list('administration.users.user');
+    if (!users.length) return ui.card({ title: 'Users', body: ui.emptyNote('No users configured.') });
+
+    const rows = users.map(function (u) {
+      return h('tr', null,
+        h('td', null, ui.isUnset(u.username) ? h('span', { class: 'muted' }, ui.EMPTY) : u.username),
+        h('td', null, userGroupBadge(u.group)),
+        h('td', null, u.active === undefined ? h('span', { class: 'muted' }, ui.EMPTY) : ui.statusPill(u.active)));
+    });
+
+    const table = h('table', { class: 'table' },
+      h('thead', null, h('tr', null, h('th', null, 'Username'), h('th', null, 'Permissions'), h('th', null, 'Active'))),
+      h('tbody', null, rows));
+    return ui.card({ title: 'Users', className: 'card-users', body: h('div', { class: 'table-wrap' }, table) });
   }
 
   /* ---------- Firewall status ---------- */

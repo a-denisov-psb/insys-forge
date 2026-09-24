@@ -290,9 +290,14 @@ body.dragging .drop-overlay { display: grid; }
   align-items: stretch;
 }
 
+/* The ports table reads better spanning the full row than sharing a column with kv cards. */
+.card-ports { grid-column: 1 / -1; }
+
 @media (max-width: 1200px) {
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .card-ports { grid-column: 1 / -1; }
+  /* System + Firewall pair up above; give the table-style Users card its own
+     full-width row below, like Ports, instead of leaving it stranded alone. */
+  .card-users { grid-column: 1 / -1; }
 }
 
 @media (max-width: 760px) {
@@ -390,6 +395,10 @@ body.dragging .drop-overlay { display: grid; }
 
 .pill-on { background: var(--on-soft); color: var(--on); }
 .pill-off { background: var(--off-soft); color: var(--off); }
+
+.pill-group-readwrite { background: var(--primary-soft); color: var(--primary); }
+.pill-group-read { background: var(--off-soft); color: var(--text-2); }
+.pill-group-status { background: var(--off-soft); color: var(--muted); }
 
 .flag { display: inline-flex; align-items: center; gap: 6px; }
 .flag-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--off); }
