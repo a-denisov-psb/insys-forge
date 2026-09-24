@@ -94,7 +94,7 @@
       ['Rule name', rule.rule_name],
     ]);
     if (!left && !right) return ui.emptyNote('No further settings for this rule.');
-    return h('div', { class: 'rule-detail-grid' }, left, right);
+    return h('div', { class: 'detail-grid' }, left, right);
   }
 
   /* ---------- Filters ---------- */
@@ -141,7 +141,7 @@
     const resultCount = h('span', { class: 'ff-count' }, rules.length + ' rules');
 
     const entries = rules.map(function (rule) {
-      const detail = h('tr', { class: 'rule-detail', hidden: true }, h('td', { colspan: '7' }, detailPanel(rule, netsByName)));
+      const detail = h('tr', { class: 'row-detail', hidden: true }, h('td', { colspan: '7' }, detailPanel(rule, netsByName)));
       const tr = h('tr', {
         class: 'rule-row',
         tabindex: '0',
@@ -210,7 +210,7 @@
 
     const tbody = h('tbody', null, entries.map(function (entry) { return [entry.tr, entry.detail]; }));
 
-    const table = h('table', { class: 'table table-firewall' },
+    const table = h('table', { class: 'table table-expand' },
       h('thead', null,
         h('tr', null,
           h('th', null, 'Nr.'), h('th', null, 'Active'), h('th', null, 'Type'), h('th', null, 'Protocol'),

@@ -29,6 +29,7 @@ A sample export is available in `reference/example_config.txt`.
 |---|---|---|
 | Dashboard | ✅ | System (hostname, domain, location, device note), firewall status, port → network assignment, cards for IP networks (addresses, DHCP client/server, VLAN, MTU, ports), WAN chains and mobile interfaces, VPN tunnels (IPsec, OpenVPN, GRE, DMVPN, PPTP, PPPoE) |
 | Firewall | ✅ | IP filter rule table with direction icons, protocol badges, per-row detail panel, per-column filters and full-text search incl. hidden fields |
+| Routing | ✅ | Static routes and OpenVPN server routes (local + pushed to clients), each with a per-row detail panel |
 
 Only configuration state is rendered. Runtime data (serial number, firmware, uptime,
 online state, DHCP-assigned addresses) is not part of the export and is therefore not shown.
