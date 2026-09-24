@@ -384,6 +384,82 @@ body.dragging .drop-overlay { display: grid; }
 
 .empty-note { margin: 0; color: var(--muted); font-style: italic; }
 
+/* ---------- Card footer link / modal ---------- */
+
+.card-more { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); text-align: right; }
+
+.link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.link-btn:hover { text-decoration: underline; }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(16, 24, 32, .45);
+}
+
+.modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title { margin: 0; font-size: 16px; font-weight: 600; }
+.modal-subtitle { margin: 2px 0 0; color: var(--text-2); font-size: 13px; }
+
+.modal-close {
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.modal-close:hover { background: var(--surface-2); color: var(--text); }
+
+.modal-body { padding: 16px 18px 18px; overflow-y: auto; }
+
+.detail-group + .detail-group { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+.detail-group-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
 /* ---------- Key/value ---------- */
 
 .kv {
