@@ -375,6 +375,27 @@
       }));
     });
 
+    // DSL interfaces (e.g. interfaces.dsl2) are identified by their line mode.
+    Object.keys(ifaces).forEach(function (name) {
+      const iface = ifaces[name];
+      if (!iface || Array.isArray(iface) || typeof iface !== 'object' || iface.mode === undefined || !/^dsl\d+$/.test(name)) return;
+      cards.push(ui.card({
+        title: name,
+        subtitle: (iface.description || '').trim() || 'DSL interface',
+        body: ui.kvList([
+          ['Mode', iface.mode],
+          ['Username', iface.mode === 'pppoe' || iface.mode === 'pppoa' ? iface.username : undefined],
+          ['Bridge network', iface.mode === 'bridge' ? iface.bridge_net : undefined],
+          ['DHCP client', iface.mode === 'wan' || iface.mode === 'bridge' ? ui.flag(iface.dhcpv4_active) : undefined],
+          ['VPI / VCI', iface.vpi === undefined ? undefined : iface.vpi + ' / ' + iface.vci],
+          ['Multiplexing', iface.multiplex],
+          ['VLAN tag', iface.vlan_tag],
+          ['MTU', iface.mtu],
+          ['Connect timer', ui.isUnset(iface.connect_timer) ? undefined : iface.connect_timer + ' s'],
+        ]),
+      }));
+    });
+
     return ui.section('WAN', cards.length,
       cards.length ? h('div', { class: 'grid' }, cards) : ui.emptyNote('No WAN configured.'));
   }
