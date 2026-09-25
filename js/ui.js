@@ -5,7 +5,7 @@
 (function (root) {
   'use strict';
 
-  const Forge = (root.Forge = root.Forge || {});
+  const RouterLens = (root.RouterLens = root.RouterLens || {});
 
   /** h('div', { class: 'x', onclick: fn }, child, 'text', [more]) */
   function h(tag, attrs) {
@@ -206,7 +206,7 @@
       .map(function (n) { return ifaceChip(n, netsByName); });
   }
 
-  Forge.ui = {
+  RouterLens.ui = {
     h: h,
     EMPTY: EMPTY,
     isOn: isOn,

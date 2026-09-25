@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- The config contains secrets: forbid any network requests from scripts. -->
   <meta http-equiv="Content-Security-Policy" content="connect-src 'none'; form-action 'none'">
-  <title>INSYS Forge</title>
+  <title>RouterLens</title>
   <link rel="stylesheet" href="css/app.css">
   <script>
     // Applied before first paint to avoid a flash of the wrong theme.
     (function () {
       try {
-        const stored = localStorage.getItem('forge-theme');
+        const stored = localStorage.getItem('routerlens-theme');
         if (stored === 'dark' || stored === 'light') document.documentElement.dataset.theme = stored;
       } catch (e) { /* localStorage unavailable (e.g. private mode) */ }
     })();
@@ -38,7 +38,7 @@
 
   <div class="shell">
     <header class="topbar">
-      <h1 id="topbar-title" class="topbar-title">INSYS Forge</h1>
+      <h1 id="topbar-title" class="topbar-title">RouterLens</h1>
       <div id="topbar-meta" class="topbar-meta"></div>
     </header>
     <main id="main" class="main"></main>
@@ -54,6 +54,6 @@
   <script src="js/views/dashboard.js"></script>
   <script src="js/views/firewall.js"></script>
   <script src="js/views/routing.js"></script>
-  <script>Forge.start();</script>
+  <script>RouterLens.start();</script>
 </body>
 </html>

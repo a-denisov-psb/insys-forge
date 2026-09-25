@@ -12,7 +12,7 @@
  * Lines ending in ".delete=all" / ".add=N" are import directives for the router,
  * not configuration values. They are collected separately.
  *
- * Runs in the browser (global `Forge.parser`) and in Node (module.exports) for tests.
+ * Runs in the browser (global `RouterLens.parser`) and in Node (module.exports) for tests.
  */
 (function (root) {
   'use strict';
@@ -213,7 +213,7 @@
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = api;
   } else {
-    root.Forge = root.Forge || {};
-    root.Forge.parser = api;
+    root.RouterLens = root.RouterLens || {};
+    root.RouterLens.parser = api;
   }
 })(typeof window !== 'undefined' ? window : globalThis);
