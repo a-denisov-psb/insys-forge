@@ -5,13 +5,13 @@
 (function (root) {
   'use strict';
 
-  const Forge = (root.Forge = root.Forge || {});
+  const RouterLens = (root.RouterLens = root.RouterLens || {});
 
   /* ---------- View registry ---------- */
 
   const views = [];
 
-  Forge.views = {
+  RouterLens.views = {
     /**
      * Registers a navigation entry.
      * @param {{id: string, label: string, icon: string, render: function(Config): Node}} view
@@ -34,8 +34,8 @@
 
   /* ---------- Bootstrapping (called after all view scripts loaded) ---------- */
 
-  Forge.start = function () {
-    const ui = Forge.ui;
+  RouterLens.start = function () {
+    const ui = RouterLens.ui;
     const h = ui.h;
 
     const nav = document.getElementById('nav');
@@ -106,7 +106,7 @@
 
     function setTheme(theme) {
       document.documentElement.dataset.theme = theme;
-      try { localStorage.setItem('forge-theme', theme); } catch (e) { /* localStorage unavailable */ }
+      try { localStorage.setItem('routerlens-theme', theme); } catch (e) { /* localStorage unavailable */ }
       syncThemeToggleLabel();
     }
 
@@ -125,7 +125,7 @@
       const reader = new FileReader();
       reader.onload = function () {
         try {
-          state.config = Forge.parser.parseConfig(reader.result);
+          state.config = RouterLens.parser.parseConfig(reader.result);
           state.fileName = file.name;
         } catch (err) {
           state.config = null;
@@ -157,7 +157,7 @@
       document.body.classList.toggle('has-config', !!state.config);
 
       if (!state.config) {
-        title.textContent = 'INSYS Forge';
+        title.textContent = 'RouterLens';
         meta.replaceChildren();
         main.appendChild(emptyState());
         return;
@@ -176,7 +176,7 @@
       ].filter(Boolean));
 
       main.appendChild(view.render(state.config));
-      document.title = (hostname ? hostname + ' · ' : '') + view.label + ' · INSYS Forge';
+      document.title = (hostname ? hostname + ' · ' : '') + view.label + ' · RouterLens';
     }
 
     function emptyState() {

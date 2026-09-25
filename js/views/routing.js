@@ -5,8 +5,8 @@
 (function (root) {
   'use strict';
 
-  const Forge = root.Forge;
-  const ui = Forge.ui;
+  const RouterLens = root.RouterLens;
+  const ui = RouterLens.ui;
   const h = ui.h;
 
   const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
@@ -161,5 +161,5 @@
         'OpenVPN server routes (push)', 'Routes advertised to the OpenVPN clients', false));
   }
 
-  Forge.views.register({ id: 'routing', label: 'Routing', icon: ICON, render: render });
+  RouterLens.views.register({ id: 'routing', label: 'Routing', icon: ICON, render: render });
 })(window);
