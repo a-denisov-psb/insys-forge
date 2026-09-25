@@ -6,8 +6,8 @@
 (function (root) {
   'use strict';
 
-  const Forge = root.Forge;
-  const ui = Forge.ui;
+  const RouterLens = root.RouterLens;
+  const ui = RouterLens.ui;
   const h = ui.h;
 
   const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
@@ -557,5 +557,5 @@
     return ui.kvList(rows) || ui.emptyNote('No further settings.');
   }
 
-  Forge.views.register({ id: 'dashboard', label: 'Dashboard', icon: ICON, render: render });
+  RouterLens.views.register({ id: 'dashboard', label: 'Dashboard', icon: ICON, render: render });
 })(window);

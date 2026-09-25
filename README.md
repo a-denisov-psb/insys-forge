@@ -1,6 +1,6 @@
-# INSYS Forge
+# RouterLens
 
-**➡️ [Open the live app](https://a-denisov-psb.github.io/insys-forge/)**
+**➡️ [Open the live app](https://a-denisov-psb.github.io/routerlens/)**
 
 Renders the configuration export of an INSYS icom OS router (flat `key=value` file) as a
 readable, icom-OS-like web view. It is a **documentation tool** for maintenance work –
@@ -8,7 +8,7 @@ not a management portal: there is no connection to the router and no backend.
 
 ## Privacy
 
-Config exports contain plaintext passwords, certificates and private keys. INSYS Forge
+Config exports contain plaintext passwords, certificates and private keys. RouterLens
 parses the file **locally in the browser**; nothing is uploaded. Network requests from
 scripts are blocked via Content Security Policy (`connect-src 'none'`).
 
@@ -52,7 +52,7 @@ reference/            Example config + icom OS REST API spec (OpenAPI 9.5)
 
 ### Parser
 
-`Forge.parser.parseConfig(text)` returns a `Config` object:
+`RouterLens.parser.parseConfig(text)` returns a `Config` object:
 
 - `get('a.b[1].c')` – value of a flat key (icom text wrappers like
   `-----BEGIN device_note-----…-----END device_note-----` removed, PEM blocks kept)
@@ -72,11 +72,11 @@ Field meanings follow the REST API schemas, e.g. `interfaces.ethernet1.*` ↔
 Create `js/views/<name>.js` and include it in `index.html` after `js/app.js`:
 
 ```js
-Forge.views.register({
+RouterLens.views.register({
   id: 'routing',              // URL hash (#routing)
   label: 'Routing',           // tooltip / page title
   icon: '<svg …>…</svg>',     // 24×24 stroke icon
-  render: function (config) { return Forge.ui.h('div', null, '…'); },
+  render: function (config) { return RouterLens.ui.h('div', null, '…'); },
 });
 ```
 

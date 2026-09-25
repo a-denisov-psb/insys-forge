@@ -1,5 +1,5 @@
 {
-  "name": "insys-forge",
+  "name": "routerlens",
   "private": true,
   "description": "Renders INSYS icom OS config exports as readable documentation, fully client-side.",
   "scripts": {
